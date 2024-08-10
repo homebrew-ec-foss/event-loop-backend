@@ -1,24 +1,26 @@
+// deadline: in 2-weeks Infinite
 package main
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
+	"github.com/homebrew-ec-foss/event-loop-backend/handlers"
 )
 
 func main() {
+
 	r := gin.Default()
 
-	r.PUT("/create/:value", putEndpoint)
-	r.GET("/get/:value", getEndpoint)
-	r.SET("/set/:value", setEndpoint)
+	r.POST("/create", handlers.HandleCreate)
 
-	r.Run(":8080")
-}
+	r.PUT("/checkpoint", handlers.HandleCheckpoint)
 
-func putEndpoint(c *gin.Context) {
-}
+	r.GET("/search", handlers.HandleParticipantSearch)
 
-func getEndpoint(c *gin.Context) {
+	err := r.Run("localhost:8080")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-}
-func setEndpoint(c *gin.Context) {
 }
