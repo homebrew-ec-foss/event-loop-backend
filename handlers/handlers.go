@@ -48,7 +48,9 @@ func HandleCreate(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "File printed successfully"})
 }
 
-func HandleCheckpoint(ctx *gin.Context) {}
+func HandleCheckpoint(ctx *gin.Context) {
+
+}
 
 func HandleParticipantSearch(ctx *gin.Context) {}
 
