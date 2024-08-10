@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,11 @@ import (
 
 func main() {
 	r := gin.Default()
+	r.Use(corsMiddleware())
+
+	r.GET("/ping", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "pong")
+	})
 
 	r.POST("/create", func(c *gin.Context) {
 		file, err := c.FormFile("file")
@@ -40,6 +46,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func corsMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+        if c.Request.Method == "OPTIONS" {
+            c.AbortWithStatus(204)
+            return
+        }
+
+        c.Next()
+    }
 }
 
 func saveFile(file *multipart.FileHeader) error {
