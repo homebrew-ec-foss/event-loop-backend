@@ -57,13 +57,74 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  .container {
+    @apply flex flex-col min-h-screen justify-between p-5;
+  }
+
+  .header {
+    @apply flex justify-between items-center;
+  }
+
+  .logo {
+    @apply text-lg font-bold;
+  }
+
+  .hamburger {
+    @apply cursor-pointer flex flex-col justify-between h-4 w-6;
+  }
+
+  .bar {
+    @apply h-[3px] w-full bg-foreground rounded-md transition-all ease-in-out duration-300;
+  }
+
+  .overlay {
+    @apply fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-lg;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .menuContainer {
+    @apply flex flex-col items-center;
+  }
+
+  .menuItem {
+    @apply my-5 px-10 py-5 bg-white bg-opacity-20 backdrop-blur-lg rounded-lg text-white text-xl transition-transform transform duration-300 ease-in-out hover:bg-opacity-30 hover:-translate-y-1;
+  }
+
+  .main {
+    @apply flex justify-center items-center flex-1;
+  }
+
+  .card {
+    @apply bg-white p-10 rounded-lg shadow-lg transition-transform transform duration-300 ease-in-out hover:-translate-y-2;
+  }
+
+  .title {
+    @apply m-0 text-2xl font-bold;
+  }
+
+  .description {
+    @apply mt-2 text-lg text-gray-500;
+  }
+
+  .footer {
+    @apply text-center py-5 border-t border-gray-200;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
