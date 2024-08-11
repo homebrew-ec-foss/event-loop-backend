@@ -26,8 +26,8 @@ export default function Ping() {
     }, []);
 
     return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <p className={`text-3xl font-regular underline`}>{ response }</p>
-    </main>
-    )
+        <main className="flex min-h-screen flex-col items-center justify-between p-24">
+            <p className={`text-3xl font-regular underline`}>{response}</p>
+        </main>
+    );
 }
