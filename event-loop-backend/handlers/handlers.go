@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/csv"
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -34,26 +34,37 @@ func HandleCreate(ctx *gin.Context) {
 	}
 
 	csvReader := csv.NewReader(bytes.NewReader(content.Bytes()))
-	var records [][]string
-	for i := 0; i < 5; i++ {
-		record, err := csvReader.Read()
-		if err == io.EOF {
-			break
+	formData, err := csvReader.ReadAll()
+
+	// TODO: do proper checks here for form headers
+	// check for validation of opiniated headers and
+	// dynamic headers
+	formHeaders := formData[0]
+
+	var formEntriesMap []map[string]string
+	formEntriesMap = make([]map[string]string, 0)
+
+	for i := 1; i < len(formData); i++ {
+		entry := make(map[string]string)
+		for j := 0; j < len(formHeaders); j++ {
+			entry[formHeaders[j]] = formData[i][j]
 		}
-		if err != nil {
-			ctx.String(http.StatusInternalServerError, "Error: Failed to parse CSV")
-			return
-		}
-		records = append(records, record)
+		formEntriesMap = append(formEntriesMap, entry)
 	}
 
-	// Format the output string
-	output := "File processed successfully\n\nContent:\n" + content.String() + "\n\nRecords:\n"
-	for _, record := range records {
-		output += fmt.Sprintf("%v\n", record)
+	// Convert records to JSON
+	jsonData, err := json.Marshal(formEntriesMap)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "Error: Failed to convert records to JSON")
+		return
 	}
 
-	ctx.String(http.StatusOK, output)
+	// output := fmt.Sprintf(string(jsonData))
+	// output := content.String()
+
+	ctx.String(http.StatusOK, string(jsonData))
+	// send json data to the frontend
+	// ctx.JSON(http.StatusOK, gin.H{"data": jsonData})
 }
 func HandleCheckpoint(ctx *gin.Context) {}
 
