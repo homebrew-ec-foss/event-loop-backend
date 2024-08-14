@@ -2,6 +2,9 @@ package database
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -24,6 +27,38 @@ func openDB() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func CreateParticipants(teamRecords []map[string]string) []Participant {
+	participants := []Participant{}
+
+	for i := 0; i < len(teamRecords); i++ {
+		record := teamRecords[i]
+		for j := 1; j <= 4; j++ {
+			participantName := record[fmt.Sprintf("Name %d", j)]
+			if participantName == "" {
+				continue
+			} else {
+				ph, err := strconv.Atoi(record[fmt.Sprintf("Phone %d", j)])
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				participants = append(participants, Participant{
+					Name:      strings.TrimSpace(record[fmt.Sprintf("Name %d", j)]),
+					Email:     strings.TrimSpace(record[fmt.Sprintf("Email %d", j)]),
+					Phone:     int64(ph),
+					College:   strings.TrimSpace(record[fmt.Sprintf("College %d", j)]),
+					Branch:    strings.TrimSpace(record[fmt.Sprintf("Branch %d", j)]),
+					PesHostel: strings.TrimSpace(record[fmt.Sprintf("PES Hostel %d", j)]),
+					Team:      strings.TrimSpace(record["Team Name"]),
+					Theme:     strings.TrimSpace(record["Theme"]),
+				})
+			}
+		}
+	}
+
+	return participants
 }
 
 func TestCreateRecords(formEntriesMap []map[string]string) error {

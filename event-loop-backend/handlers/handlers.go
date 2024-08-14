@@ -5,10 +5,12 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/homebrew-ec-foss/event-loop-backend/database"
 )
 
 func HandleCreate(ctx *gin.Context) {
@@ -41,19 +43,35 @@ func HandleCreate(ctx *gin.Context) {
 	// dynamic headers
 	formHeaders := formData[0]
 
+	//
+	// {
+	// 		part id
+	// 		part name
+	// 		...
+	//
+	// 		shared: team name
+	// }
+	//
+
 	var formEntriesMap []map[string]string
 	formEntriesMap = make([]map[string]string, 0)
 
 	for i := 1; i < len(formData); i++ {
 		entry := make(map[string]string)
+		// each entry is a slice of strings
 		for j := 0; j < len(formHeaders); j++ {
 			entry[formHeaders[j]] = formData[i][j]
 		}
 		formEntriesMap = append(formEntriesMap, entry)
 	}
 
+	participants := database.CreateParticipants(formEntriesMap)
+
+	// println(participants)
+
 	// Convert records to JSON
-	jsonData, err := json.Marshal(formEntriesMap)
+	jsonData, err := json.Marshal(participants)
+	fmt.Println(string(jsonData))
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "Error: Failed to convert records to JSON")
 		return
