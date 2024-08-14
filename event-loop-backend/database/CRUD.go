@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -11,25 +10,22 @@ import (
 )
 
 var db *gorm.DB
+var err error
 
 func openDB() (*gorm.DB, error) {
 	if db == nil {
-		fmt.Println("connecting data to db")
-		db, err := gorm.Open(sqlite.Open("event.db"), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open("event.db"), &gorm.Config{})
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Println(db)
-
-		db.AutoMigrate(&Team{})
-		db.AutoMigrate(&Participant{})
+		db.AutoMigrate(&DBParticipant{})
 	}
 
 	return db, nil
 }
 
-func CreateParticipants(teamRecords []map[string]string) []Participant {
+func CreateParticipants(teamRecords []map[string]string) ([]Participant, error) {
 	participants := []Participant{}
 
 	for i := 0; i < len(teamRecords); i++ {
@@ -41,7 +37,7 @@ func CreateParticipants(teamRecords []map[string]string) []Participant {
 			} else {
 				ph, err := strconv.Atoi(record[fmt.Sprintf("Phone %d", j)])
 				if err != nil {
-					log.Fatal(err)
+					return nil, err
 				}
 
 				participants = append(participants, Participant{
@@ -58,7 +54,26 @@ func CreateParticipants(teamRecords []map[string]string) []Participant {
 		}
 	}
 
-	return participants
+	db, err := openDB()
+	if err != nil {
+		return nil, err
+	}
+
+	var participantPointers []*DBParticipant
+	for _, p := range participants {
+		participantPointers = append(participantPointers, &DBParticipant{
+			Participant: p,
+			Checkpoints: Checkpoints{
+				false,
+				false,
+				false,
+			},
+		})
+	}
+
+	db.Create(participantPointers)
+
+	return participants, nil
 }
 
 func TestCreateRecords(formEntriesMap []map[string]string) error {
@@ -67,28 +82,24 @@ func TestCreateRecords(formEntriesMap []map[string]string) error {
 		return err
 	}
 
-	sampleTeam := Team{
-		"RandomID-1",
-		"Team-1",
-		"Theme-1",
+	sampleParticipant := DBParticipant{
+		Participant{
+			"Team-1",
+			"Theme-1",
+			"Name-1",
+			"Email-1",
+			123456789,
+			"PES",
+			"EC",
+			"EC",
+		},
+		Checkpoints{
+			false,
+			false,
+			false,
+		},
 	}
 
-	sampleParticipant := Participant{
-		"RandomParticipantID-1",
-		"Team-1",
-		"Theme-1",
-		"Name-1",
-		"Email-1",
-		123456789,
-		"PES",
-		"EC",
-		"EC",
-	}
-
-	// teamResult := db.Create(&sampleTeam)
-	// participantResult := db.Create(&sampleParticipant)
-
-	_ = db.Create(&sampleTeam)
-	_ = db.Create(&sampleParticipant)
+	db.Create(&sampleParticipant)
 	return nil
 }

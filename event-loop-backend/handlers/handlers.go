@@ -43,16 +43,6 @@ func HandleCreate(ctx *gin.Context) {
 	// dynamic headers
 	formHeaders := formData[0]
 
-	//
-	// {
-	// 		part id
-	// 		part name
-	// 		...
-	//
-	// 		shared: team name
-	// }
-	//
-
 	var formEntriesMap []map[string]string
 	formEntriesMap = make([]map[string]string, 0)
 
@@ -65,9 +55,11 @@ func HandleCreate(ctx *gin.Context) {
 		formEntriesMap = append(formEntriesMap, entry)
 	}
 
-	participants := database.CreateParticipants(formEntriesMap)
-
-	// println(participants)
+	// Parsing and storing participants in the database
+	participants, err := database.CreateParticipants(formEntriesMap)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database")
+	}
 
 	// Convert records to JSON
 	jsonData, err := json.Marshal(participants)
@@ -76,12 +68,6 @@ func HandleCreate(ctx *gin.Context) {
 		ctx.String(http.StatusInternalServerError, "Error: Failed to convert records to JSON")
 		return
 	}
-
-	//TODO: testing DB operations, to be replaced by production operations
-	// err = database.TestCreateRecords(formEntriesMap)
-	// if err != nil {
-	// 	ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database", err)
-	// }
 
 	ctx.String(http.StatusOK, string(jsonData))
 	// send json data to the frontend
