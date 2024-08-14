@@ -59,15 +59,17 @@ func HandleCreate(ctx *gin.Context) {
 		return
 	}
 
-	// output := fmt.Sprintf(string(jsonData))
-	// output := content.String()
+	//TODO: testing DB operations, to be replaced by production operations
+	// err = database.TestCreateRecords(formEntriesMap)
+	// if err != nil {
+	// 	ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database", err)
+	// }
 
 	ctx.String(http.StatusOK, string(jsonData))
 	// send json data to the frontend
 	// ctx.JSON(http.StatusOK, gin.H{"data": jsonData})
 }
+
 func HandleCheckpoint(ctx *gin.Context) {}
 
 func HandleParticipantSearch(ctx *gin.Context) {}
-
-//ill write comments later lel

@@ -1,17 +1,19 @@
 package database
 
-import "gorm.io/gorm"
-
+type Team struct {
+	ID    string `gorm:"primaryKey"`
+	Team  string
+	Theme string
+}
 
 type Participant struct {
-	gorm.Model
-	// Participant Info
-	// - Name
-	// - Email
-	// - SRN???
-	// - Phone Number
-	// - CGPA
-
-	// Team Relation info
-	// - Team Name
+	ID        string `gorm:"primaryKey"`
+	Team      string
+	Theme     string
+	Name      string
+	Email     string
+	Phone     int64
+	College   string
+	Branch    string
+	PesHostel string
 }
