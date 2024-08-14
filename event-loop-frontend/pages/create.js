@@ -18,6 +18,7 @@ import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { Popover } from "@/components/ui/popover"
 import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover"
 import { Calendar } from "@/components/ui/calendar"
+import Navbar from "@/components/navbar"
 
 
 export default function FileUpload() {
@@ -49,6 +50,7 @@ export default function FileUpload() {
         // side code for incorrect implementation
         const splitResponse = text.split(`{"message":"File uploaded successfully"}`)[0];
         setJsonResponse(JSON.parse(splitResponse));
+        console.log(splitResponse);
         console.log(jsonResponse)
       } else {
         console.log("Failed to upload file");
@@ -63,27 +65,7 @@ export default function FileUpload() {
   return (
     <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
 
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <Link href="/" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Home
-              </NavigationMenuLink>
-            </Link>
-            <Link href="/create" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Create
-              </NavigationMenuLink>
-            </Link>
-            <Link href="/ping" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Ping
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+      <Navbar />
 
       {/* TODO: Make all fields as "required"
             removed for testing
@@ -103,20 +85,6 @@ export default function FileUpload() {
               <div className="flex flex-col space-y-1.5">
                 <Label>Event Date</Label>
                 <Input id="event-date" type="date" placeholder="Enter event date"/>
-                {/*
-                  TODO: Use shadcn's popover calendar
-                <Popover>
-                  <PopoverTrigger asChild>Open</PopoverTrigger>
-                  <PopoverContent>
-                    <Calendar
-                      mode="single"
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    ></Calendar>
-                  </PopoverContent>
-                </Popover> */}
               </div>  
               <div className="flex flex-col space-y-1.5">
                 <Label>Registrants CSV</Label>
@@ -148,14 +116,6 @@ export default function FileUpload() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {/* Json of format
-            [
-              {
-                "name": "John Doe",
-                "phone": "1234567890",
-              }
-            ]
-          */}
           {jsonResponse && jsonResponse.map((row, index) => (
             <TableRow key={index}>
               <TableCell>{row.name}</TableCell>

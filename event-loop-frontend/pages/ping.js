@@ -7,6 +7,7 @@ import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/navbar";
 
 export default function Ping() {
     const [response, setResponse] = useState(null);
@@ -33,30 +34,10 @@ export default function Ping() {
     }, []);
 
     return (
-        <main className="flex min-h-screen flex-col p-5 md:p-24 gap-4">
-            <NavigationMenu>
-                <NavigationMenuList>
-                    <NavigationMenuItem>
-                        <Link href="/" legacyBehavior passHref>
-                            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                Home
-                            </NavigationMenuLink>
-                        </Link>
-                        <Link href="/create" legacyBehavior passHref>
-                            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                Create
-                            </NavigationMenuLink>
-                        </Link>
-                        <Link href="/ping" legacyBehavior passHref>
-                            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                Ping
-                            </NavigationMenuLink>
-                        </Link>
-                    </NavigationMenuItem>
-                </NavigationMenuList>
-            </NavigationMenu>
+        <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
+            <Navbar></Navbar>
 
-            <Card>
+            <Card className="hover:bg-slate-100 transition duration-200 ease-in-out">
                 <CardHeader>
                     <CardTitle>Server Status</CardTitle>
                     <CardDescription>Eventloop GO backend status</CardDescription>

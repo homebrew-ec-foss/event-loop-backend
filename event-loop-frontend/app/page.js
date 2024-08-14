@@ -9,6 +9,7 @@ import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import Navbar from '@/components/navbar';
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,28 +40,8 @@ export default function Home() {
     //     </div>
     //   )}
 
-    <main className="flex min-h-screen flex-col p-5 md:p-24 gap-4">
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <Link href="/" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Home
-              </NavigationMenuLink>
-            </Link>
-            <Link href="/create" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Create
-              </NavigationMenuLink>
-            </Link>
-            <Link href="/ping" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Ping
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+    <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
+        <Navbar />
 
         {/* <div className={styles.card}>
           <h1 className={styles.title}>Welcome to Event-Loop</h1>
@@ -68,7 +49,7 @@ export default function Home() {
             Some Waffle.
           </p>
         </div> */}
-        <Card>
+        <Card className="hover:bg-slate-100 transition duration-200 ease-in-out">
           <CardHeader>
             <CardTitle>Welcome to Event-Loop</CardTitle>
             <CardDescription>Get started with creating your event</CardDescription>
