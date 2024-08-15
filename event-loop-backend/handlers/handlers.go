@@ -55,9 +55,11 @@ func HandleCreate(ctx *gin.Context) {
 		formEntriesMap = append(formEntriesMap, entry)
 	}
 
-	participants := database.CreateParticipants(formEntriesMap)
-
-	// println(participants)
+	// Parsing and storing participants in the database
+	participants, err := database.CreateParticipants(formEntriesMap)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database")
+	}
 
 	// Convert records to JSON
 	jsonData, err := json.Marshal(participants)
@@ -68,7 +70,6 @@ func HandleCreate(ctx *gin.Context) {
 	}
 
 	//TODO: testing DB operations, to be replaced by production operations
-
 	ctx.String(http.StatusOK, string(jsonData))
 	// BUG: ctx.JSON fails
 }
