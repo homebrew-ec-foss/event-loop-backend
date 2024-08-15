@@ -9,7 +9,7 @@ package database
 
 // This struct holds all of the unified participant data stored in the DB
 type DBParticipant struct {
-	// ID        string `gorm:"primaryKey"`
+	ID          string      `gorm:"primaryKey"`
 	Participant Participant `gorm:"embedded"`
 	Checkpoints Checkpoints `gorm:"embedded"`
 }

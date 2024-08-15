@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -55,15 +55,34 @@ func HandleCreate(ctx *gin.Context) {
 		formEntriesMap = append(formEntriesMap, entry)
 	}
 
-	// Parsing and storing participants in the database
-	participants, err := database.CreateParticipants(formEntriesMap)
+	// PARSING the db and storing []Participants slice
+	participants, err := ParseParticipants(formEntriesMap)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database")
 	}
 
+	// DEBUG:
+	// 	log.Println("Parsed participants")
+	// 	log.Println(participants)
+	// 	log.Println()
+
+	// NOTE:
+	// Create auth tokens and form a []DBParticipants slice
+	// This will only be for it to be written to database
+	// dbParticipants, err := CreateDBParticipants(participants)
+	dbParticipants, err := CreateDBParticipants(participants)
+
+	// NOTE:
+	// Pass over dbParticcipants to the CRUD for
+	// file writes
+	err = database.CreateParticipants(dbParticipants)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Convert records to JSON
 	jsonData, err := json.Marshal(participants)
-	fmt.Println(string(jsonData))
+	// fmt.Println(string(jsonData))
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "Error: Failed to convert records to JSON")
 		return
