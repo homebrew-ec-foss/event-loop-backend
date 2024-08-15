@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
+  // FIX: device preference
+  // darkMode: ['variant', [
+  //   '@media (prefers-color-scheme: dark) { &:not(.light *) }',
+  //   '&:is(.dark *)',
+  // ]],
   content: [
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',

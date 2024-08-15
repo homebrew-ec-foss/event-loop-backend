@@ -1,13 +1,11 @@
-import "./globals.css";
-import { isPrime } from "mathjs";
+"use client";
+
+import "@/app/globals.css";
 import React, { useState, useEffect } from "react";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuList, NavigationMenuLink } from "@radix-ui/react-navigation-menu"
-import Link from "next/link"
-import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
+import RootLayout from "@/app/layout";
 
 export default function Ping() {
     const [response, setResponse] = useState(null);
@@ -47,7 +45,7 @@ export default function Ping() {
                         response ? (
                             // <p className="text-2xl font-mono">{response}</p>
                             <Badge>Alive</Badge>
-                        ): (
+                        ) : (
                             <Badge variant="destructive">Not responsive</Badge>
                         )
                     }

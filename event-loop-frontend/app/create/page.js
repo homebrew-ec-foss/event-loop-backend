@@ -15,8 +15,6 @@ import { useToast } from "@/components/ui/use-toast";
 import * as React from "react";
 
 import { useState } from "react";
-import { formatDate } from "date-fns";
-import { i } from "mathjs";
 import {
     Table,
     TableBody,
@@ -26,17 +24,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuList,
-    NavigationMenuLink,
-} from "@radix-ui/react-navigation-menu";
-import Link from "next/link";
-import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { Popover } from "@/components/ui/popover";
-import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
-import { Calendar } from "@/components/ui/calendar";
 import Navbar from "@/components/navbar";
 
 export default function FileUpload() {
@@ -63,7 +50,8 @@ export default function FileUpload() {
 
             const text = await response.text();
             if (response.ok) {
-                // TODDO: Not sure why theres that extra part, check server
+
+                // TODO: Not sure why theres that extra part, check server
                 // side code for incorrect implementation
 
                 console.log(JSON.parse(text));
@@ -82,9 +70,10 @@ export default function FileUpload() {
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
 
-            {/* TODO: Make all fields as "required"
-            removed for testing
-      */}
+            {/* 
+                TODO:   Make all fields as "required"
+                        removed for testing
+            */}
             <Card className="max-[300px]">
                 <CardHeader>
                     <CardTitle>Create Event</CardTitle>
@@ -139,56 +128,49 @@ export default function FileUpload() {
                 </CardContent>
             </Card>
 
-            <Table className="">
-                {/* fill table with setJsonResponse */}
-                <TableCaption>Verified CSV form</TableCaption>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>College</TableHead>
-                        <TableHead>Branch</TableHead>
-                        <TableHead>PES Hostel</TableHead>
-                        <TableHead>Team Name</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {jsonResponse &&
-                        jsonResponse.map((row, index) => (
-                            <TableRow key={index}>
-                                <TableCell>{row.Name}</TableCell>
-                                <TableCell>{row.Phone}</TableCell>
-                                <TableCell>{row.Email}</TableCell>
-                                <TableCell>{row.College}</TableCell>
-                                <TableCell>{row.Branch}</TableCell>
-                                {
-                                    row.PesHostel != "" ? (
-                                        <TableCell>{row.PesHostel}</TableCell>
-                                    ) : (
-                                        <TableCell>nil</TableCell>
-                                    )
-                                }
-                                <TableCell>{row.Team}</TableCell>
-                            </TableRow>
-                        ))}
-                </TableBody>
-            </Table>
+            { /*
+                TODO:   Provide admin with stats regarding the form
+                        before displaying the entire structure
+            */}
 
-            {/* <div>
-        <h1>Upload a File</h1>
-        <form onSubmit={handleSubmit}>
-          <input type="file" onChange={handleFileChange} accept=".csv" />
-          <button type="submit">Upload</button>
-        </form>
-        {status && <p>{status}</p>}
-        {content && (
-          <div>
-            <h2>Response:</h2>
-            <pre>{content}</pre>
-          </div>
-        )}
-      </div> */}
+            {
+                jsonResponse && (
+                    <Table className="">
+                        {/* fill table with setJsonResponse */}
+                        <TableCaption>Verified CSV form</TableCaption>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Phone</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>College</TableHead>
+                                <TableHead>Branch</TableHead>
+                                <TableHead>PES Hostel</TableHead>
+                                <TableHead>Team Name</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {jsonResponse &&
+                                jsonResponse.map((row, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{row.Name}</TableCell>
+                                        <TableCell>{row.Phone}</TableCell>
+                                        <TableCell>{row.Email}</TableCell>
+                                        <TableCell>{row.College}</TableCell>
+                                        <TableCell>{row.Branch}</TableCell>
+                                        {row.PesHostel != "" ? (
+                                            <TableCell>{row.PesHostel}</TableCell>
+                                        ) : (
+                                            <TableCell>nil</TableCell>
+                                        )}
+                                        <TableCell>{row.Team}</TableCell>
+                                    </TableRow>
+                                ))}
+                        </TableBody>
+                    </Table>
+                )
+            }
+
         </main>
     );
 }
