@@ -97,7 +97,6 @@ func GenerateOR(signedString string, i int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// err = qrcode.WriteFile(signedString, qrcode.Low, 256, fmt.Sprintf("%d-part.png", i))
 	if err != nil {
 		return nil, err
 	}
