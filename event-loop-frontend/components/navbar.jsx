@@ -33,6 +33,13 @@ export default function Navbar() {
                             Ping
                         </NavigationMenuLink>
                     </Link>
+                    <Link href="/checkpoint" legacyBehavior passHref>
+                        <NavigationMenuLink
+                            className={navigationMenuTriggerStyle()}
+                        >
+                            Checkpoint
+                        </NavigationMenuLink>
+                    </Link>
                 </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>
