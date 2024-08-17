@@ -1,49 +1,52 @@
 'use client';
 
-import "@/app/globals.css";
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
 import QrCodeIcon from "@/components/ui/icon";
-import QrScannerWithConstraints from "@/components/QrScannerWithConstraints";
+import { Scanner } from "@yudiel/react-qr-scanner";
+import { Badge } from "@/components/ui/badge"; // Ensure this path is correct
 
 export default function Checkpoint() {
     const [scanning, setScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
-    const [cameras, setCameras] = useState([]);
-    const [selectedCamera, setSelectedCamera] = useState(null);
+    const [selectedDevice, setSelectedDevice] = useState(null);
+    const [devices, setDevices] = useState([]);
+    const [qrHistory, setQrHistory] = useState([]);
 
     useEffect(() => {
-        const getCameras = async () => {
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                setCameras(videoDevices);
-                if (videoDevices.length > 0) {
-                    setSelectedCamera(videoDevices[0].deviceId);
-                }
-            } catch (err) {
-                console.error("Error fetching cameras:", err);
-                setError("Could not access camera devices.");
-            }
-        };
+        navigator.mediaDevices.enumerateDevices().then((deviceInfos) => {
+            const videoDevices = deviceInfos.filter(device => device.kind === 'videoinput');
+            setDevices(videoDevices);
 
-        getCameras();
+            const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back'));
+            if (rearCamera) {
+                setSelectedDevice(rearCamera.deviceId);
+            } else if (videoDevices.length > 0) {
+                setSelectedDevice(videoDevices[0].deviceId);
+            }
+        });
     }, []);
 
-    const handleQRCodeScan = useCallback(async (data) => {
-        if (data) {
-            setScanResult(data.text);
-            setScanning(false); // Stop scanning when a QR code is scanned
+    const handleQRCodeScan = useCallback(async (detectedCodes) => {
+        if (detectedCodes.length > 0) {
+            const scannedCode = detectedCodes[0].rawValue;
+            setScanResult(scannedCode);
+            setScanning(false);
+
+            setQrHistory(prevHistory => {
+                const updatedHistory = [scannedCode, ...prevHistory].slice(0, 5);
+                return updatedHistory;
+            });
+
             try {
                 const response = await fetch('http://localhost:8080/checkpoint', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ jwt: data.text }),
+                    body: JSON.stringify({ jwt: scannedCode }),
                 });
                 if (response.ok) {
                     console.log("JWT sent successfully");
@@ -62,15 +65,8 @@ export default function Checkpoint() {
     };
 
     const handleCameraChange = (event) => {
-        setSelectedCamera(event.target.value);
+        setSelectedDevice(event.target.value);
     };
-
-    const videoConstraints = selectedCamera ? {
-        deviceId: { exact: selectedCamera },
-        facingMode: 'environment', // ill set it as environment as of now wont say exact, but device can be changed
-        width: 1280,
-        height: 720
-    } : {};
 
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
@@ -89,13 +85,13 @@ export default function Checkpoint() {
                                 {scanning ? "Click to close scanner" : "Click to open scanner"}
                             </span>
                         </button>
-                        {cameras.length > 0 && (
+                        {devices.length > 0 && (
                             <select 
                                 onChange={handleCameraChange} 
-                                value={selectedCamera} 
-                                className="mt-2 p-2 bg-gray-200 rounded"
+                                value={selectedDevice} 
+                                className="mt-2 p-2 bg-gray-200 rounded border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             >
-                                {cameras.map(camera => (
+                                {devices.map(camera => (
                                     <option key={camera.deviceId} value={camera.deviceId}>
                                         {camera.label || `Camera ${camera.deviceId}`}
                                     </option>
@@ -107,17 +103,38 @@ export default function Checkpoint() {
                     <CardDescription>Scan the QR code to authenticate and continue.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center justify-center">
-                    {scanning && (
+                    {scanning && selectedDevice && (
                         <div className="relative w-full max-w-[320px] aspect-square bg-muted rounded-lg overflow-hidden">
-                            <QrScannerWithConstraints
-                                onError={handleError}
+                            <Scanner
                                 onScan={handleQRCodeScan}
-                                videoConstraints={videoConstraints}
+                                onError={handleError}
+                                constraints={{ video: { deviceId: selectedDevice } }}
                             />
                         </div>
                     )}
                     {scanResult && <Badge>QR Code Scanned: {scanResult}</Badge>}
                     {error && <Badge variant="destructive">{error}</Badge>}
+                    
+                    {/* QR Code History */}
+                    <div className="mt-4 w-full max-w-md">
+                        <Card className="relative p-4 bg-gray-100 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                            <CardHeader>
+                                <CardTitle>Recent QR Codes</CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative overflow-hidden max-h-[200px]">
+                                <ul className="list-none">
+                                    {qrHistory.map((code, index) => (
+                                        <li
+                                            key={index}
+                                            className="truncate overflow-hidden hover:overflow-visible hover:max-h-[unset] transition-all duration-300"
+                                        >
+                                            {code}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </CardContent>
             </Card>
         </main>
