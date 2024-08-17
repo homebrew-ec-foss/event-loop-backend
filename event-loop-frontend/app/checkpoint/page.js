@@ -1,19 +1,38 @@
 'use client';
 
 import "@/app/globals.css";
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
 import QrCodeIcon from "@/components/ui/icon";
-import QrScannerWithConstraints from "@/components/QrScannerWithConstraints"; // Import custom QR Scanner component
+import QrScannerWithConstraints from "@/components/QrScannerWithConstraints";
 
 export default function Checkpoint() {
     const [scanning, setScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
+    const [cameras, setCameras] = useState([]);
+    const [selectedCamera, setSelectedCamera] = useState(null);
 
-    // Handle QR code scanning
+    useEffect(() => {
+        const getCameras = async () => {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                setCameras(videoDevices);
+                if (videoDevices.length > 0) {
+                    setSelectedCamera(videoDevices[0].deviceId);
+                }
+            } catch (err) {
+                console.error("Error fetching cameras:", err);
+                setError("Could not access camera devices.");
+            }
+        };
+
+        getCameras();
+    }, []);
+
     const handleQRCodeScan = useCallback(async (data) => {
         if (data) {
             setScanResult(data.text);
@@ -37,16 +56,21 @@ export default function Checkpoint() {
         }
     }, []);
 
-    // Handle errors with QR scanner
     const handleError = (err) => {
         console.error("Error with QR Scanner:", err);
         setError("Camera not accessible.");
     };
 
-    const previewStyle = {
-        height: 240,
-        width: 320,
+    const handleCameraChange = (event) => {
+        setSelectedCamera(event.target.value);
     };
+
+    const videoConstraints = selectedCamera ? {
+        deviceId: { exact: selectedCamera },
+        facingMode: 'environment', // ill set it as environment as of now wont say exact, but device can be changed
+        width: 1280,
+        height: 720
+    } : {};
 
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
@@ -65,6 +89,19 @@ export default function Checkpoint() {
                                 {scanning ? "Click to close scanner" : "Click to open scanner"}
                             </span>
                         </button>
+                        {cameras.length > 0 && (
+                            <select 
+                                onChange={handleCameraChange} 
+                                value={selectedCamera} 
+                                className="mt-2 p-2 bg-gray-200 rounded"
+                            >
+                                {cameras.map(camera => (
+                                    <option key={camera.deviceId} value={camera.deviceId}>
+                                        {camera.label || `Camera ${camera.deviceId}`}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
                     <CardTitle>Checkpoint</CardTitle>
                     <CardDescription>Scan the QR code to authenticate and continue.</CardDescription>
@@ -73,9 +110,9 @@ export default function Checkpoint() {
                     {scanning && (
                         <div className="relative w-full max-w-[320px] aspect-square bg-muted rounded-lg overflow-hidden">
                             <QrScannerWithConstraints
-                                style={previewStyle}
                                 onError={handleError}
                                 onScan={handleQRCodeScan}
+                                videoConstraints={videoConstraints}
                             />
                         </div>
                     )}
