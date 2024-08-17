@@ -70,7 +70,7 @@ export default function FileUpload() {
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
 
-            {/* 
+            {/*
                 TODO:   Make all fields as "required"
                         removed for testing
             */}
@@ -153,17 +153,17 @@ export default function FileUpload() {
                             {jsonResponse &&
                                 jsonResponse.map((row, index) => (
                                     <TableRow key={index}>
-                                        <TableCell>{row.Name}</TableCell>
-                                        <TableCell>{row.Phone}</TableCell>
-                                        <TableCell>{row.Email}</TableCell>
-                                        <TableCell>{row.College}</TableCell>
-                                        <TableCell>{row.Branch}</TableCell>
-                                        {row.PesHostel != "" ? (
-                                            <TableCell>{row.PesHostel}</TableCell>
+                                        <TableCell>{row.name}</TableCell>
+                                        <TableCell>{row.phone}</TableCell>
+                                        <TableCell>{row.email}</TableCell>
+                                        <TableCell>{row.college}</TableCell>
+                                        <TableCell>{row.branch}</TableCell>
+                                        {row.pesHostel != "" ? (
+                                            <TableCell>{row.pesHostel}</TableCell>
                                         ) : (
                                             <TableCell>nil</TableCell>
                                         )}
-                                        <TableCell>{row.Team}</TableCell>
+                                        <TableCell>{row.team}</TableCell>
                                     </TableRow>
                                 ))}
                         </TableBody>

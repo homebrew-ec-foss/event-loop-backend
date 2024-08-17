@@ -26,13 +26,6 @@ export default function Navbar() {
                             Create
                         </NavigationMenuLink>
                     </Link>
-                    <Link href="/search" legacyBehavior passHref>
-                        <NavigationMenuLink
-                            className={navigationMenuTriggerStyle()}
-                        >
-                            Search
-                        </NavigationMenuLink>
-                    </Link>
                     <Link href="/ping" legacyBehavior passHref>
                         <NavigationMenuLink
                             className={navigationMenuTriggerStyle()}
