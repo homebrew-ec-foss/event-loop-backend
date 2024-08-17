@@ -5,9 +5,8 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -40,72 +39,118 @@ func HandleCreate(ctx *gin.Context) {
 		return
 	}
 
+	// Reading csv to a 2-D slice
 	csvReader := csv.NewReader(bytes.NewReader(content.Bytes()))
 	formData, err := csvReader.ReadAll()
 
-	// TODO: do proper checks here for form headers
-	// check for validation of opiniated headers and
+	// TODO(FUTURE): do proper checks here for form headers
+	// check for validation of opinionated headers and
 	// dynamic headers
 	formHeaders := formData[0]
 
-	var formEntriesMap []map[string]string
-	formEntriesMap = make([]map[string]string, 0)
+	formEntriesMap := make([]map[string]string, 0)
 
+	// Converting csv data to a slice of maps (slice has several rows of records, where each row is a map)
+	// Each map contains key-value pairs, where the key is the csv-header for the column
 	for i := 1; i < len(formData); i++ {
 		entry := make(map[string]string)
-		// each entry is a slice of strings
 		for j := 0; j < len(formHeaders); j++ {
 			entry[formHeaders[j]] = formData[i][j]
 		}
+		// Appending map(row) to slice(all rows)
 		formEntriesMap = append(formEntriesMap, entry)
 	}
 
-	// PARSING the db and storing []Participants slice
+	// Parsing the csv to a slice of Participants struct
 	participants, err := ParseParticipants(formEntriesMap)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database")
 	}
 
-	// NOTE:
-	// Create auth tokens and form a []DBParticipants slice
-	// This will only be for it to be written to database
-	// dbParticipants, err := CreateDBParticipants(participants)
+	// Converting Participant structs to DBPartictipants
+	// Performing JWT and QR generation and embedding 'Checkpoints' struct
 	dbParticipants, err := CreateDBParticipants(participants)
 
-	// NOTE:
-	// Pass over dbParticcipants to the CRUD for
-	// file writes
+	// Writing records to DB
 	err = database.CreateParticipants(dbParticipants)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Convert records to JSON
-	jsonData, err := json.Marshal(participants)
-	// fmt.Println(string(jsonData))
-	if err != nil {
-		ctx.String(http.StatusInternalServerError, "Error: Failed to convert records to JSON")
-		return
-	}
-
-	//TODO: testing DB operations, to be replaced by production operations
-	ctx.String(http.StatusOK, string(jsonData))
-	// BUG: ctx.JSON fails
+	ctx.JSON(http.StatusOK, gin.H{"data": participants})
 }
 
+// Handler receives the JWT and manages checkpoint(Eg: Dinner) updates
 func HandleCheckpoint(ctx *gin.Context) {
 	// Read the request body
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to read request body"})
+		return
+	}
+	log.Println("QR code content received:", string(body))
+
+	var data map[string]interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to parse JSON"})
 		return
 	}
 
-	// Log the body to the console
-	fmt.Println("QR code content received:", string(body))
+	jwtClaims := GetClaimsInfo(data["jwt"].(string))
+	if jwtClaims == nil {
+		log.Println("Invalid JWT")
+		ctx.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid JWT"})
+		return
+	}
+	log.Println("JWT claims:", jwtClaims)
 
 	// Respond to the client
-	ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received successfully", "claims": jwtClaims})
+}
+
+// Handler receives the JWT and manages event enrty updates
+func HandleCheckin(ctx *gin.Context) {
+	// Read the request body
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+	log.Println("QR code content received:", string(body))
+
+	var data map[string]interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse JSON"})
+		return
+	}
+	log.Println(data)
+
+	// Parsing claims and validating JWT
+	jwtClaims := GetClaimsInfo(data["jwt"].(string))
+	if jwtClaims == nil {
+		log.Println("Invalid JWT")
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid JWT"})
+		return
+	}
+	log.Println(jwtClaims)
+
+	// Querying DB for participant and updating with entry
+	dbParticipant, checkin, err := database.ParticipantEntry(data["jwt"].(string))
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received but failed to fetch db", "checkin": false, "operation": false})
+	}
+
+	// TODO: Handle checkin cases
+	// Invalid Participant
+	// Already checked in
+	// DB errors, etc
+
+	// Respond to the client
+	ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received successfully", "checkin": checkin, "operation": true, "participant": dbParticipant})
 }
 
 func HandleParticipantSearch(ctx *gin.Context) {}

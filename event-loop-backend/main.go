@@ -23,17 +23,15 @@ func main() {
 	// handles creation for event
 	r.POST("/create", handlers.HandleCreate)
 
-
 	////////////////////////////////////////////////
 
 	// Generic functions for admin control
 
-	r.GET("/search", handlers.HandleParticipantSearch)
+	r.GET("/search", func(ctx *gin.Context) {})
 
 	// Additional team addition besides CSV
 	// future prospect
 	r.POST("/createteam", func(ctx *gin.Context) {})
-
 
 	////////////////////////////////////////////////
 
@@ -41,14 +39,13 @@ func main() {
 	// eg: Crossing checkpoints, etc.
 
 	// TODO: Handle checking by scanner
-	r.POST("/checkin", func(ctx *gin.Context) {})
+	r.PUT("/checkin", handlers.HandleCheckin)
 
-	r.POST("/checkout", func(ctx *gin.Context) {})
+	r.PUT("/checkout", func(ctx *gin.Context) {})
 
 	r.PUT("/checkpoint", handlers.HandleCheckpoint)
 
-
-	err := r.Run("localhost:8080")
+	err := r.RunTLS("0.0.0.0:8080", "localhost.crt", "localhost.key")
 	if err != nil {
 		log.Fatal(err)
 	}

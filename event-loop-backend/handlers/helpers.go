@@ -28,8 +28,8 @@ func CorsMiddleware() gin.HandlerFunc {
 	}
 }
 
+// Parsing a slice of maps(rows of records) from csv data to a slice of participant structs
 func ParseParticipants(teamRecords []map[string]string) ([]database.Participant, error) {
-
 	participants := []database.Participant{}
 
 	for i := 0; i < len(teamRecords); i++ {
@@ -62,16 +62,11 @@ func ParseParticipants(teamRecords []map[string]string) ([]database.Participant,
 }
 
 func CreateDBParticipants(participantsRec []database.Participant) ([]database.DBParticipant, error) {
-
 	var participantPointers []database.DBParticipant
-	for i, p := range participantsRec {
 
-		// TODO: Create auth token for primary key
+	for _, p := range participantsRec {
 		signedString, _ := GenerateAuthoToken(p)
-		// fmt.Println(signedString)
-
-		// TODO: fix GenerateQR
-		_, err := GenerateOR(signedString, i)
+		_, err := GenerateOR(signedString, p.Name, p.Phone)
 		if err != nil {
 			log.Fatal(err)
 		}

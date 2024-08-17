@@ -26,18 +26,18 @@ export default function Navbar() {
                             Create
                         </NavigationMenuLink>
                     </Link>
-                    <Link href="/ping" legacyBehavior passHref>
-                        <NavigationMenuLink
-                            className={navigationMenuTriggerStyle()}
-                        >
-                            Ping
-                        </NavigationMenuLink>
-                    </Link>
                     <Link href="/checkpoint" legacyBehavior passHref>
                         <NavigationMenuLink
                             className={navigationMenuTriggerStyle()}
                         >
                             Checkpoint
+                        </NavigationMenuLink>
+                    </Link>
+                    <Link href="/checkin" legacyBehavior passHref>
+                        <NavigationMenuLink
+                            className={navigationMenuTriggerStyle()}
+                        >
+                            Checkin
                         </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>

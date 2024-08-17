@@ -1,26 +1,33 @@
 package database
 
 import (
+	"errors"
+	"log"
+	"time"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
-var db *gorm.DB
-var err error
+var dbGlobal *gorm.DB
+var errGlobal error
 
+// Open and return db access struct
 func openDB() (*gorm.DB, error) {
-	if db == nil {
-		db, err = gorm.Open(sqlite.Open("event.db"), &gorm.Config{})
-		if err != nil {
-			return nil, err
+	if dbGlobal == nil {
+		dbGlobal, errGlobal = gorm.Open(sqlite.Open("event.db"), &gorm.Config{})
+		if errGlobal != nil {
+			log.Println(errGlobal)
+			return nil, errGlobal
 		}
 
-		db.AutoMigrate(&DBParticipant{})
+		dbGlobal.AutoMigrate(&DBParticipant{})
 	}
 
-	return db, nil
+	return dbGlobal, nil
 }
 
+// Create records for all participants parsed from the csv
 func CreateParticipants(dbParticipants []DBParticipant) error {
 
 	db, err := openDB()
@@ -34,34 +41,31 @@ func CreateParticipants(dbParticipants []DBParticipant) error {
 	return nil
 }
 
+// Update DB with the participant entry checkpoint
+func ParticipantEntry(jwtID string) (*DBParticipant ,bool, error) {
+	db, err := openDB()
+	if err != nil {
+		return nil, false,err
+	}
+
+	var participant DBParticipant
+	_ = db.First(&participant, "id = ?", jwtID)
+	log.Println(participant.Participant)
+
+	if participant.Participant.Name == "" {
+		return nil, false, errors.New("Participant does not exist in the DB")
+	}
+
+	if !participant.Checkpoints.Checkin {
+		participant.Checkpoints.Entry_time = time.Now()
+		participant.Checkpoints.Checkin = true
+		db.Save(&participant)
+		return &participant, true, nil
+	}
+
+	return &participant, false, nil
+}
+
 // TODO:
 // Rewrite helper functions for tests
 // Dont modify actual record
-
-// func TestCreateRecords(formEntriesMap []map[string]string) error {
-// 	db, err := openDB()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	sampleParticipant := DBParticipant{
-// 		Participant{
-// 			"Team-1",
-// 			"Theme-1",
-// 			"Name-1",
-// 			"Email-1",
-// 			123456789,
-// 			"PES",
-// 			"EC",
-// 			"EC",
-// 		},
-// 		Checkpoints{
-// 			false,
-// 			false,
-// 			false,
-// 		},
-// 	}
-
-// 	db.Create(&sampleParticipant)
-// 	return nil
-// }

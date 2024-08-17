@@ -1,1 +1,7 @@
-.env
+*.db
+
+*.png
+
+localhost.crt
+localhost.key
+

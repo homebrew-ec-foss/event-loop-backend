@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import Navbar from "@/components/navbar";
 
+
 export default function FileUpload() {
     // const [file, setFile] = useState(null);
     // const [status, setStatus] = useState("");
@@ -43,21 +44,19 @@ export default function FileUpload() {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://localhost:8080/create", {
+            
+            const response = await fetch(`${process.env.GO_BACKEND_URL}/create`, {
                 method: "POST",
                 body: formData,
             });
 
-            const text = await response.text();
+            const resp = await response.json();
+            console.log(resp);
+
             if (response.ok) {
-
-                // TODO: Not sure why theres that extra part, check server
-                // side code for incorrect implementation
-
-                console.log(JSON.parse(text));
-                setJsonResponse(JSON.parse(text));
-                // console.log(splitResponse);
-                console.log(jsonResponse);
+                console.log("Data is der");
+                setJsonResponse(resp.data);
+                console.log(resp.data);
             } else {
                 console.log("Failed to upload file");
             }
@@ -128,49 +127,46 @@ export default function FileUpload() {
                 </CardContent>
             </Card>
 
-            { /*
+            {/*
                 TODO:   Provide admin with stats regarding the form
                         before displaying the entire structure
             */}
 
-            {
-                jsonResponse && (
-                    <Table className="">
-                        {/* fill table with setJsonResponse */}
-                        <TableCaption>Verified CSV form</TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Phone</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>College</TableHead>
-                                <TableHead>Branch</TableHead>
-                                <TableHead>PES Hostel</TableHead>
-                                <TableHead>Team Name</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {jsonResponse &&
-                                jsonResponse.map((row, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{row.name}</TableCell>
-                                        <TableCell>{row.phone}</TableCell>
-                                        <TableCell>{row.email}</TableCell>
-                                        <TableCell>{row.college}</TableCell>
-                                        <TableCell>{row.branch}</TableCell>
-                                        {row.pesHostel != "" ? (
-                                            <TableCell>{row.pesHostel}</TableCell>
-                                        ) : (
-                                            <TableCell>nil</TableCell>
-                                        )}
-                                        <TableCell>{row.team}</TableCell>
-                                    </TableRow>
-                                ))}
-                        </TableBody>
-                    </Table>
-                )
-            }
-
+            {jsonResponse && (
+                <Table className="">
+                    {/* fill table with setJsonResponse */}
+                    <TableCaption>Verified CSV form</TableCaption>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Phone</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>College</TableHead>
+                            <TableHead>Branch</TableHead>
+                            <TableHead>PES Hostel</TableHead>
+                            <TableHead>Team Name</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {jsonResponse &&
+                            jsonResponse.map((row, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{row.name}</TableCell>
+                                    <TableCell>{row.phone}</TableCell>
+                                    <TableCell>{row.email}</TableCell>
+                                    <TableCell>{row.college}</TableCell>
+                                    <TableCell>{row.branch}</TableCell>
+                                    {row.pesHostel != "" ? (
+                                        <TableCell>{row.pesHostel}</TableCell>
+                                    ) : (
+                                        <TableCell>nil</TableCell>
+                                    )}
+                                    <TableCell>{row.team}</TableCell>
+                                </TableRow>
+                            ))}
+                    </TableBody>
+                </Table>
+            )}
         </main>
     );
 }

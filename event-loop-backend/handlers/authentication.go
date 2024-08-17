@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -12,7 +13,6 @@ import (
 )
 
 // Claims for JWT
-// Name, College, Email, Phone number, Branch
 type JWTClaims struct {
 	Name    string `json:"name"`
 	College string `json:"college"`
@@ -39,7 +39,6 @@ func JWTAuthCheck(rawtoken string) (bool, *jwt.MapClaims) {
 	token, err := parser_struct.ParseWithClaims(rawtoken, claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(dotenv), nil
 	})
-
 	if err != nil {
 		return false, nil
 	}
@@ -91,12 +90,19 @@ func GetClaimsInfo(rawtoken string) map[string]interface{} {
 	}
 }
 
-func GenerateOR(signedString string, i int) ([]byte, error) {
+// TODO: cleanup arguments for GenerateOR
+func GenerateOR(signedString, participantName string, participantPhone int64) ([]byte, error) {
 	var png []byte
 	png, err := qrcode.Encode(signedString, qrcode.Low, 256)
 	if err != nil {
 		return nil, err
 	}
+
+	if err = os.MkdirAll("../test-data/qr-png/", 0750); err != nil {
+		log.Println(err)
+	}
+
+	err = qrcode.WriteFile(signedString, qrcode.Medium, 256, fmt.Sprintf("../test-data/qr-png/person-%s-%d.png", participantName, participantPhone))
 	if err != nil {
 		return nil, err
 	}
