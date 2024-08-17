@@ -5,11 +5,8 @@ import React, { useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
-import QrCodeIcon from "@/components/ui/icon"; // Import the QrCodeIcon component
-import dynamic from 'next/dynamic';
-
-// Dynamically import react-qr-scanner without server-side rendering
-const QrScanner = dynamic(() => import('react-qr-scanner'), { ssr: false });
+import QrCodeIcon from "@/components/ui/icon";
+import QrScannerWithConstraints from "@/components/QrScannerWithConstraints"; // Import custom QR Scanner component
 
 export default function Checkpoint() {
     const [scanning, setScanning] = useState(false);
@@ -75,8 +72,7 @@ export default function Checkpoint() {
                 <CardContent className="flex flex-col items-center justify-center">
                     {scanning && (
                         <div className="relative w-full max-w-[320px] aspect-square bg-muted rounded-lg overflow-hidden">
-                            <QrScanner
-                                delay={300}
+                            <QrScannerWithConstraints
                                 style={previewStyle}
                                 onError={handleError}
                                 onScan={handleQRCodeScan}
