@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/homebrew-ec-foss/event-loop-backend/database"
 	"github.com/joho/godotenv"
+	"github.com/skip2/go-qrcode"
 )
 
 // Claims for JWT
@@ -88,4 +89,18 @@ func GetClaimsInfo(rawtoken string) map[string]interface{} {
 		log.Println(err)
 		return nil
 	}
+}
+
+func GenerateOR(signedString string, i int) ([]byte, error) {
+	var png []byte
+	png, err := qrcode.Encode(signedString, qrcode.Low, 256)
+	if err != nil {
+		return nil, err
+	}
+	// err = qrcode.WriteFile(signedString, qrcode.Low, 256, fmt.Sprintf("%d-part.png", i))
+	if err != nil {
+		return nil, err
+	}
+
+	return png, nil
 }

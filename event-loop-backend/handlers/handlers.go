@@ -13,6 +13,10 @@ import (
 	"github.com/homebrew-ec-foss/event-loop-backend/database"
 )
 
+// TODO:
+// HandleCreate only handles the incoming file
+// - Create db based on event name
+// - Store imporatnt event related info regarding date, etc...
 func HandleCreate(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	if err != nil {
@@ -60,11 +64,6 @@ func HandleCreate(ctx *gin.Context) {
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "Error: Failed to write records to the database")
 	}
-
-	// DEBUG:
-	// 	log.Println("Parsed participants")
-	// 	log.Println(participants)
-	// 	log.Println()
 
 	// NOTE:
 	// Create auth tokens and form a []DBParticipants slice

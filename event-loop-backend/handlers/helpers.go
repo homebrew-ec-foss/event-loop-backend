@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 	"strconv"
@@ -63,19 +64,27 @@ func ParseParticipants(teamRecords []map[string]string) ([]database.Participant,
 func CreateDBParticipants(participantsRec []database.Participant) ([]database.DBParticipant, error) {
 
 	var participantPointers []database.DBParticipant
-	for _, p := range participantsRec {
+	for i, p := range participantsRec {
 
 		// TODO: Create auth token for primary key
 		signedString, _ := GenerateAuthoToken(p)
-		fmt.Println(signedString)
+		// fmt.Println(signedString)
+
+		// TODO: fix GenerateQR
+		_, err := GenerateOR(signedString, i)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		participantPointers = append(participantPointers, database.DBParticipant{
 			ID:          signedString,
 			Participant: p,
 			Checkpoints: database.Checkpoints{
-				false,
-				false,
-				false,
+				Checkin:   false,
+				Checkout:  false,
+				Snacks:    false,
+				Dinner:    false,
+				Breakfast: false,
 			},
 		})
 	}

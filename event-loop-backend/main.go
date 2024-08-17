@@ -17,11 +17,36 @@ func main() {
 		ctx.String(http.StatusOK, "pong")
 	})
 
+	////////////////////////////////////////////////
+
+	// Pre event endpoints
+	// handles creation for event
 	r.POST("/create", handlers.HandleCreate)
+
+
+	////////////////////////////////////////////////
+
+	// Generic functions for admin control
+
+	r.GET("/search", handlers.HandleParticipantSearch)
+
+	// Additional team addition besides CSV
+	// future prospect
+	r.POST("/createteam", func(ctx *gin.Context) {})
+
+
+	////////////////////////////////////////////////
+
+	// Endpoints accessed during events
+	// eg: Crossing checkpoints, etc.
+
+	// TODO: Handle checking by scanner
+	r.POST("/checkin", func(ctx *gin.Context) {})
+
+	r.POST("/checkout", func(ctx *gin.Context) {})
 
 	r.PUT("/checkpoint", handlers.HandleCheckpoint)
 
-	r.GET("/search", handlers.HandleParticipantSearch)
 
 	err := r.Run("localhost:8080")
 	if err != nil {

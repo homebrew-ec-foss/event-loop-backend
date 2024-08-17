@@ -34,6 +34,10 @@ func CreateParticipants(dbParticipants []DBParticipant) error {
 	return nil
 }
 
+// TODO:
+// Rewrite helper functions for tests
+// Dont modify actual record
+
 // func TestCreateRecords(formEntriesMap []map[string]string) error {
 // 	db, err := openDB()
 // 	if err != nil {
