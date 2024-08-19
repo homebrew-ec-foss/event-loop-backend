@@ -43,7 +43,7 @@ export default function Checkin() {
             try {
                 // Request
                 const response = await fetch(
-                    `${process.env.GO_BACKEND_URL}/checkin`,
+                    `${process.env.GO_BACKEND_URL}/checkout`,
                     {
                         method: "PUT",
                         headers: {
@@ -61,16 +61,16 @@ export default function Checkin() {
                         // JWT has been sent successfully
 
                         const entrytime = new Date(
-                            json.dbParticipant["Checkpoints"]["entry_time"],
+                            json.dbParticipant["Checkpoints"]["exit_time"],
                         );
 
                         // Oh my god is type safety even
                         // a thing!?
 
-                        if (json.operation && json.checkin) {
-                            alert(`Suffessful Checkin at ${entrytime}`);
-                        } else if (json.operation && !json.checkin) {
-                            alert(`Already checked in at ${entrytime}`);
+                        if (json.operation && json.checkout) {
+                            alert(`Suffessful checked out at ${entrytime}`);
+                        } else if (json.operation && !json.checkout) {
+                            alert(`Already checked out at ${entrytime}`);
                         }
 
                         // Append participants to rencet scans
@@ -84,7 +84,7 @@ export default function Checkin() {
                     case 400: {
                         // Bad request by client
                         console.log(json);
-                        alert(`Aey who is this fellow!? ${json.message}`);
+                        alert(`${json.message}`);
                         break;
                     }
                     case 500: {
@@ -144,7 +144,7 @@ export default function Checkin() {
                             </span>
                         </button>
                     </div>
-                    <CardTitle>Checkin</CardTitle>
+                    <CardTitle>Checkout Participants</CardTitle>
                     <CardDescription>
                         Scan the QR code to authenticate and continue.
                     </CardDescription>
@@ -165,7 +165,7 @@ export default function Checkin() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Checkin Time</TableHead>
+                                    <TableHead>Checkout Time</TableHead>
                                     <TableHead>College</TableHead>
                                     <TableHead>Phone</TableHead>
                                     <TableHead>Team</TableHead>
@@ -183,7 +183,7 @@ export default function Checkin() {
                                                     const entrytime = new Date(
                                                         row[
                                                             "Checkpoints"
-                                                        ].entry_time,
+                                                        ].exit_time,
                                                     );
                                                     const hours = String(
                                                         entrytime.getHours(),

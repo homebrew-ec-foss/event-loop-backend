@@ -30,7 +30,6 @@ type Participant struct {
 	College   string `json:"college"`
 	Branch    string `json:"branch"`
 	PesHostel string `json:"pesHostel"`
-
 }
 
 // This struct stores all event checkpoints

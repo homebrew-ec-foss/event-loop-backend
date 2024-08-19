@@ -66,7 +66,7 @@ func CreateDBParticipants(participantsRec []database.Participant) ([]database.DB
 
 	for _, p := range participantsRec {
 		signedString, _ := GenerateAuthoToken(p)
-		_, err := GenerateOR(signedString, p.Name, p.Phone)
+		_, err := GenerateQR(signedString, p.Name, p.Phone)
 		if err != nil {
 			log.Fatal(err)
 		}

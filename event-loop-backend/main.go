@@ -41,7 +41,7 @@ func main() {
 	// TODO: Handle checking by scanner
 	r.PUT("/checkin", handlers.HandleCheckin)
 
-	r.PUT("/checkout", func(ctx *gin.Context) {})
+	r.PUT("/checkout", handlers.HandleCheckout)
 
 	r.PUT("/checkpoint", handlers.HandleCheckpoint)
 

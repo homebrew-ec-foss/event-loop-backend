@@ -19,6 +19,13 @@ export default function Navbar() {
                             Home
                         </NavigationMenuLink>
                     </Link>
+                    <Link href="/ping" legacyBehavior passHref>
+                        <NavigationMenuLink
+                            className={navigationMenuTriggerStyle()}
+                        >
+                            Ping
+                        </NavigationMenuLink>
+                    </Link>
                     <Link href="/create" legacyBehavior passHref>
                         <NavigationMenuLink
                             className={navigationMenuTriggerStyle()}
@@ -38,6 +45,13 @@ export default function Navbar() {
                             className={navigationMenuTriggerStyle()}
                         >
                             Checkin
+                        </NavigationMenuLink>
+                    </Link>
+                    <Link href="/checkout" legacyBehavior passHref>
+                        <NavigationMenuLink
+                            className={navigationMenuTriggerStyle()}
+                        >
+                            Checkout
                         </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>

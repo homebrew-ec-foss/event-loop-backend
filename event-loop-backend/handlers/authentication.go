@@ -22,6 +22,8 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
+var JWTFailedClaimsParsing = fmt.Errorf("Failed to parse for cliams. Seems like an invalid QR")
+
 func goDotEnvVariable(key string) string {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -51,6 +53,9 @@ func JWTAuthCheck(rawtoken string) (bool, *jwt.MapClaims) {
 	}
 }
 
+// BUG
+// 	All the jwt toekns use email in place of
+// 	college name :P
 func GenerateAuthoToken(user_record database.Participant) (string, *JWTClaims) {
 	claims := JWTClaims{
 		user_record.Name,
@@ -74,7 +79,7 @@ func GenerateAuthoToken(user_record database.Participant) (string, *JWTClaims) {
 	return signedString, &claims
 }
 
-func GetClaimsInfo(rawtoken string) map[string]interface{} {
+func GetClaimsInfo(rawtoken string) (map[string]interface{}, error) {
 	parser_struct := jwt.Parser{}
 	claims := jwt.MapClaims{}
 	token, err := parser_struct.ParseWithClaims(rawtoken, claims, func(t *jwt.Token) (interface{}, error) {
@@ -82,16 +87,21 @@ func GetClaimsInfo(rawtoken string) map[string]interface{} {
 		return []byte(dotenv), nil
 	})
 
+	if err != nil {
+		log.Println(err)
+		return nil, JWTFailedClaimsParsing
+	}
+
 	if token.Valid {
-		return claims
+		return claims, nil
 	} else {
 		log.Println(err)
-		return nil
+		return nil, JWTFailedClaimsParsing
 	}
 }
 
-// TODO: cleanup arguments for GenerateOR
-func GenerateOR(signedString, participantName string, participantPhone int64) ([]byte, error) {
+// TODO: cleanup arguments for GenerateQR
+func GenerateQR(signedString, participantName string, participantPhone int64) ([]byte, error) {
 	var png []byte
 	png, err := qrcode.Encode(signedString, qrcode.Low, 256)
 	if err != nil {

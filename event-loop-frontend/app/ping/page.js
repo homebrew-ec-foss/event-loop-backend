@@ -7,8 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
 import RootLayout from "@/app/layout";
 
-const GO_BACKEND_URL = "https://100.91.203.91:8080";
-
 export default function Ping() {
   const [response, setResponse] = useState(null);
 

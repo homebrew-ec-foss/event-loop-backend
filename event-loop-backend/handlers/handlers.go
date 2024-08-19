@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
-	"log"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -97,7 +97,7 @@ func HandleCheckpoint(ctx *gin.Context) {
 		return
 	}
 
-	jwtClaims := GetClaimsInfo(data["jwt"].(string))
+	jwtClaims, err := GetClaimsInfo(data["jwt"].(string))
 	if jwtClaims == nil {
 		log.Println("Invalid JWT")
 		ctx.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid JWT"})
@@ -126,31 +126,92 @@ func HandleCheckin(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse JSON"})
 		return
 	}
-	log.Println(data)
 
 	// Parsing claims and validating JWT
-	jwtClaims := GetClaimsInfo(data["jwt"].(string))
-	if jwtClaims == nil {
-		log.Println("Invalid JWT")
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid JWT"})
+	jwtClaims, err := GetClaimsInfo(data["jwt"].(string))
+	if err != nil && jwtClaims == nil {
+		log.Println("Invalid jwt")
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Failed to pasrse JWT for the cliams. Seems like an invlaid QR"})
 		return
 	}
-	log.Println(jwtClaims)
 
 	// Querying DB for participant and updating with entry
 	dbParticipant, checkin, err := database.ParticipantEntry(data["jwt"].(string))
-	if err != nil {
-		log.Println(err)
-		ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received but failed to fetch db", "checkin": false, "operation": false})
+
+	switch err {
+	case database.ErrDbOpenFailure:
+		{
+			log.Println(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators"})
+			return
+		}
+	case database.ErrDbMissingRecord:
+		{
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkin": false, "operation": "true"})
+			return
+		}
 	}
 
-	// TODO: Handle checkin cases
-	// Invalid Participant
-	// Already checked in
-	// DB errors, etc
+	// Respond to the client
+	ctx.JSON(http.StatusOK, gin.H{"message": "QR JWT parsed and db operation was sucessful", "checkin": checkin, "operation": true, "dbParticipant": dbParticipant})
+	return
+}
+
+func HandleCheckout(ctx *gin.Context) {
+	// Read the request body
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse JSON"})
+		return
+	}
+
+	// DEBUG
+
+	// Parsing claims and validating JWT
+	jwtClaims, err := GetClaimsInfo(data["jwt"].(string))
+
+	if err != nil && jwtClaims == nil {
+		log.Println("Invalid jwt")
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Failed to pasrse JWT for the cliams. Seems like an invlaid QR"})
+		return
+	}
+
+	log.Println(jwtClaims)
+
+	// Querying DB for participant and updating with entry
+	dbParticipant, checkout, err := database.ParticipantExit(data["jwt"].(string))
+
+	switch err {
+	case database.ErrDbOpenFailure:
+		{
+			log.Println(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators"})
+			return
+		}
+	case database.ErrDbMissingRecord:
+		{
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkin": false, "operation": "true"})
+			return
+		}
+	case database.ErrParticipantAbsent:
+		{
+			log.Println("The guy never came!")
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Participant has never checked into the envet. Can't proceed with operation"})
+			return
+		}
+	}
 
 	// Respond to the client
-	ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received successfully", "checkin": checkin, "operation": true, "participant": dbParticipant})
+	ctx.JSON(http.StatusOK, gin.H{"message": "QR JWT parsed and db operation was sucessful", "checkout": checkout, "operation": true, "dbParticipant": dbParticipant})
+	return
 }
 
 func HandleParticipantSearch(ctx *gin.Context) {}

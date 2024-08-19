@@ -8,7 +8,7 @@ Regenerating QR's
 `handlers/authentication.go`
 
 ```go
-func GenerateOR(signedString string, i int) ([]byte, error) {
+func GenerateQR(signedString string, i int) ([]byte, error) {
 	// -- snip --
 
 	err = qrcode.WriteFile(signedString, qrcode.Medium, 256, fmt.Sprintf("part-%d.png", i))
