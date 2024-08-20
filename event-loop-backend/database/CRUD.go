@@ -17,10 +17,12 @@ var (
 // Rather proposed custom error types
 var ErrDbOpenFailure = fmt.Errorf("Failed to run `OpenDB()`")
 var ErrDbMissingRecord = fmt.Errorf("Failed to fetch record")
+var ErrIncorrectField = fmt.Errorf("Checkpoint missing in db")
 
 // Event specific errors
 // DB_Participants related errors
 var ErrParticipantAbsent = fmt.Errorf("Participant never checkedin")
+var ErrParticipantLeft = fmt.Errorf("Participant has left the event")
 
 // Open and return db access struct
 func openDB() (*gorm.DB, error) {
@@ -50,6 +52,16 @@ func CreateParticipants(dbParticipants []DBParticipant) error {
 	return nil
 }
 
+// Function to fetch all checkpoints and
+// forward to backend
+//
+// for dynamic checkpoint loading for site
+func FetchCheckpoints() []string {
+	var checkpoints []string
+
+	return checkpoints
+}
+
 // Update DB with the participant entry checkpoint
 //
 // Return signature
@@ -70,6 +82,10 @@ func ParticipantEntry(jwtID string) (*DBParticipant, bool, error) {
 		// FIX:
 		// Returns a pointer to an empty struct
 		return nil, false, ErrDbMissingRecord
+	}
+
+	if dbParticipant.Checkpoints.Checkin && dbParticipant.Checkpoints.Checkout {
+		return nil, false, ErrParticipantLeft
 	}
 
 	if !dbParticipant.Checkpoints.Checkin {
@@ -100,8 +116,6 @@ func ParticipantExit(jwtID string) (*DBParticipant, bool, error) {
 	log.Println(jwtID)
 	_ = db.First(&dbParticipants, "id = ?", jwtID)
 
-	log.Println("Hello")
-
 	// Extra check if there has been some tampered entry
 	// in the db
 	if dbParticipants.Participant.Name == "" {
@@ -121,5 +135,68 @@ func ParticipantExit(jwtID string) (*DBParticipant, bool, error) {
 		return &dbParticipants, true, nil
 	}
 
+	return &dbParticipants, false, nil
+}
+
+func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant, bool, error) {
+
+	db, err := openDB()
+	if err != nil {
+		return nil, false, ErrDbOpenFailure
+	}
+
+	var dbParticipants DBParticipant
+
+	_ = db.First(&dbParticipants, "id = ?", jwtID)
+
+	// Check if participant is in the db
+	if dbParticipants.Participant.Name == "" {
+		return nil, false, ErrDbMissingRecord
+	}
+
+	if !dbParticipants.Checkpoints.Checkin {
+		return nil, false, ErrParticipantAbsent
+	}
+
+	if dbParticipants.Checkpoints.Checkin && dbParticipants.Checkpoints.Checkout {
+		return nil, false, ErrParticipantLeft
+	}
+
+	// FIX: Refractor
+	switch checkpointName {
+	case "Breakfast":
+		{
+			if dbParticipants.Checkpoints.Breakfast {
+				break
+			}
+			dbParticipants.Checkpoints.Breakfast = true;
+			db.Save(&dbParticipants)
+			return &dbParticipants, true, nil
+		}
+	case "Dinner":
+		{
+			if dbParticipants.Checkpoints.Dinner {
+				break
+			}
+			dbParticipants.Checkpoints.Dinner = true;
+			db.Save(&dbParticipants)
+			return &dbParticipants, true, nil
+		}
+	case "Snacks":
+		{
+			if dbParticipants.Checkpoints.Snacks {
+				break
+			}
+			dbParticipants.Checkpoints.Snacks = true;
+			db.Save(&dbParticipants)
+			return &dbParticipants, true, nil
+		}
+	default:
+		{
+			return nil, false, ErrIncorrectField
+		}
+	}
+
+	// Participant has already opted for the option
 	return &dbParticipants, false, nil
 }

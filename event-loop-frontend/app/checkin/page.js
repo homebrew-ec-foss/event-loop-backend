@@ -54,6 +54,7 @@ export default function Checkin() {
                 );
 
                 const json = await response.json();
+                console.log(json);
 
                 switch (response.status) {
                     case 200: {
@@ -84,7 +85,7 @@ export default function Checkin() {
                     case 400: {
                         // Bad request by client
                         console.log(json);
-                        alert(`Aey who is this fellow!? ${json.message}`);
+                        alert(`${json.message}`);
                         break;
                     }
                     case 500: {

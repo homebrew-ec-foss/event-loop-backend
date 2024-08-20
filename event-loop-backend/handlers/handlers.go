@@ -98,6 +98,14 @@ func HandleCheckpoint(ctx *gin.Context) {
 	}
 
 	jwtClaims, err := GetClaimsInfo(data["jwt"].(string))
+	if err != nil && jwtClaims == nil {
+		log.Println("Invalid jwt")
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Failed to pasrse JWT for the cliams. Seems like an invlaid QR"})
+		return
+	}
+
+	checkpointName := data["checkpoint"].(string)
+
 	if jwtClaims == nil {
 		log.Println("Invalid JWT")
 		ctx.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid JWT"})
@@ -105,8 +113,37 @@ func HandleCheckpoint(ctx *gin.Context) {
 	}
 	log.Println("JWT claims:", jwtClaims)
 
+	dbParticipant, checkpointCleared, err := database.ParticipantCheckpoint(data["jwt"].(string), checkpointName)
+	log.Println(dbParticipant, checkpointCleared, err)
+
+	switch err {
+	case database.ErrDbOpenFailure:
+		{
+			log.Println(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators"})
+			return
+		}
+	case database.ErrDbMissingRecord:
+		{
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkpointCleared": false, "operation": true})
+			return
+		}
+	case database.ErrParticipantAbsent:
+		{
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Participant has never checked into the envet. Can't proceed with operation"})
+			return
+		}
+	case database.ErrParticipantLeft:
+		{
+			log.Println("Already left the event")
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Participant has left the event. Can't proceed with operation"})
+			return
+		}
+	}
+
 	// Respond to the client
-	ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received successfully", "claims": jwtClaims})
+	// ctx.JSON(http.StatusOK, gin.H{"message": "QR code content received successfully", "claims": jwtClaims})
+	ctx.JSON(http.StatusOK, gin.H{"message": "QR code parsed sucessfully and operation sucessful", "checkpointCleared": checkpointCleared, "operation": true, "dbParticipant": dbParticipant})
 }
 
 // Handler receives the JWT and manages event enrty updates
@@ -147,7 +184,12 @@ func HandleCheckin(ctx *gin.Context) {
 		}
 	case database.ErrDbMissingRecord:
 		{
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkin": false, "operation": "true"})
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkin": false, "operation": true})
+			return
+		}
+	case database.ErrParticipantLeft:
+		{
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Participant has left the event. Can't proceed with operation"})
 			return
 		}
 	}
@@ -198,7 +240,7 @@ func HandleCheckout(ctx *gin.Context) {
 		}
 	case database.ErrDbMissingRecord:
 		{
-			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkin": false, "operation": "true"})
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "The QR might not be accurate", "checkin": false, "operation": true})
 			return
 		}
 	case database.ErrParticipantAbsent:
