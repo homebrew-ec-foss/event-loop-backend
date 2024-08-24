@@ -7,12 +7,12 @@ const metadata = {
   title: 'Event-Loop',
   description: 'scam fe',
 };
-
+//everything needs to be wrapped in the GoogleOAuthProvider so that it has context, we could only wrap the pages that need it but this is easier, if we doing fe protected route
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <GoogleOAuthProvider clientId="995204146791-d6c44oaq69pfcofbaod09j8p73j393gc.apps.googleusercontent.com">
+        <GoogleOAuthProvider clientId="include ur client id here ples">
           {children}
         </GoogleOAuthProvider>
       </body>
