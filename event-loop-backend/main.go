@@ -39,6 +39,7 @@ func main() {
 	// Additional team addition besides CSV
 	// future prospect
 	r.POST("/createteam", func(ctx *gin.Context) {})
+	r.POST("/login", handlers.HandleLogin)
 
 	////////////////////////////////////////////////
 

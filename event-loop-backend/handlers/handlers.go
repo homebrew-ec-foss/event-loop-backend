@@ -342,6 +342,24 @@ func HandleParticipantFetch(ctx *gin.Context) {
 	}
 }
 
+func HandleLogin(ctx *gin.Context) {
+	//apparently map only i needto do
+	var requestBody map[string]interface{}
+
+	// json-> map tried doing with string because ez but was not nice
+	if err := ctx.BindJSON(&requestBody); err != nil {
+		log.Println("Error binding JSON:", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// print ingo
+	log.Println("Received login request:", requestBody)
+
+	// Respond to the client
+	ctx.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+}
+
 func HandleParticipantUpdate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Participants details updated sucessfully"})
 }
