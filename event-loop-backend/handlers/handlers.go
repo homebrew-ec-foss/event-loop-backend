@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -253,7 +255,93 @@ func HandleCheckout(ctx *gin.Context) {
 
 	// Respond to the client
 	ctx.JSON(http.StatusOK, gin.H{"message": "QR JWT parsed and db operation was sucessful", "checkout": checkout, "operation": true, "dbParticipant": dbParticipant})
-	return
 }
 
 func HandleParticipantSearch(ctx *gin.Context) {}
+
+func HandleQRFetch(ctx *gin.Context) {
+	log.Println("Recieved")
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse JSON"})
+		return
+	}
+
+	// Parsing claims and validating JWT
+	jwtClaims, err := GetClaimsInfo(data["jwt"].(string))
+
+	if err != nil && jwtClaims == nil {
+		log.Println("Invalid jwt")
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Failed to pasrse JWT for the cliams. Seems like an invlaid QR"})
+		return
+	}
+
+	dbparticipant, err := database.JWTFetchParticipant(data["jwt"].(string))
+
+	log.Println(dbparticipant)
+
+	if errors.Is(err, database.ErrDbOpenFailure) {
+		log.Println(err)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "details parseed sucessfully", "dbParticipant": dbparticipant})
+}
+
+// TODO:
+// This endpoint exposes way too much data
+// Non JWTID basesd search expects the name and phone to
+// be unique together
+func HandleParticipantFetch(ctx *gin.Context) {
+
+	jwtID := ctx.DefaultQuery("jwtID", "")
+	partName := ctx.DefaultQuery("pname", "")
+	partPhone := ctx.DefaultQuery("pphone", "")
+
+	fmt.Println(jwtID, partName, partPhone)
+
+	if jwtID != "" {
+		// search based on JWT ID
+		valid, _ := JWTAuthCheck(jwtID)
+		if !valid {
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid jwt ID"})
+			return
+		}
+		dbParticipant, err := database.JWTFetchParticipant(jwtID)
+		if errors.Is(err, database.ErrDbOpenFailure) {
+			log.Println(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"message": "participant fetched successfully", "dbParticipant": dbParticipant})
+		return
+	} else {
+		log.Println("Fetching based on ID")
+		dbParticipant, err := database.FetchParticipant(partName, partPhone)
+		switch err {
+		case database.ErrDbOpenFailure:
+			{
+				ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators"})
+				return
+			}
+		case database.ErrDbMissingRecord:
+			{
+				ctx.JSON(http.StatusBadRequest, gin.H{"message": "No participant exists. Details may be incorrect"})
+				return
+			}
+		}
+		ctx.JSON(http.StatusOK, gin.H{"message": "participant fetched successfully", "dbParticipant": dbParticipant})
+		return
+	}
+}
+
+func HandleParticipantUpdate(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{"message": "Participants details updated sucessfully"})
+}

@@ -22,7 +22,7 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-var JWTFailedClaimsParsing = fmt.Errorf("Failed to parse for cliams. Seems like an invalid QR")
+var ErrJWTFailedClaimsParsing = fmt.Errorf("Failed to parse for cliams. Seems like an invalid QR")
 
 func goDotEnvVariable(key string) string {
 	err := godotenv.Load(".env")
@@ -54,8 +54,9 @@ func JWTAuthCheck(rawtoken string) (bool, *jwt.MapClaims) {
 }
 
 // BUG
-// 	All the jwt toekns use email in place of
-// 	college name :P
+//
+//	All the jwt toekns use email in place of
+//	college name :P
 func GenerateAuthoToken(user_record database.Participant) (string, *JWTClaims) {
 	claims := JWTClaims{
 		user_record.Name,
@@ -89,14 +90,14 @@ func GetClaimsInfo(rawtoken string) (map[string]interface{}, error) {
 
 	if err != nil {
 		log.Println(err)
-		return nil, JWTFailedClaimsParsing
+		return nil, ErrJWTFailedClaimsParsing
 	}
 
 	if token.Valid {
 		return claims, nil
 	} else {
 		log.Println(err)
-		return nil, JWTFailedClaimsParsing
+		return nil, ErrJWTFailedClaimsParsing
 	}
 }
 

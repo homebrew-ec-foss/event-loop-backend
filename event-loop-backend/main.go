@@ -29,6 +29,13 @@ func main() {
 
 	r.GET("/search", func(ctx *gin.Context) {})
 
+	// fetch participants details based on JWT ID
+	// fetched based on a qr code
+	r.POST("/qrsearch", handlers.HandleQRFetch)
+
+	r.GET("/participant", handlers.HandleParticipantFetch)
+	r.POST("/participant", handlers.HandleParticipantUpdate)
+
 	// Additional team addition besides CSV
 	// future prospect
 	r.POST("/createteam", func(ctx *gin.Context) {})

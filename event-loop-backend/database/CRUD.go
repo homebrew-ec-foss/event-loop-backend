@@ -62,6 +62,36 @@ func FetchCheckpoints() []string {
 	return checkpoints
 }
 
+func JWTFetchParticipant(jwtId string) (*DBParticipant, error) {
+	db, err := openDB()
+	if err != nil {
+		return nil, ErrDbOpenFailure
+	}
+
+	var dbParticipant DBParticipant
+	_ = db.First(&dbParticipant, "id = ?", jwtId)
+
+	return &dbParticipant, nil
+}
+
+func FetchParticipant(name string, phone string) (*DBParticipant, error) {
+	db, err := openDB()
+	if err != nil {
+		return nil, ErrDbOpenFailure
+	}
+
+	var dbParticipant DBParticipant
+	_ = db.First(&dbParticipant, "name = ? and phone = ?", name, phone)
+
+	log.Println(dbParticipant)
+
+	if dbParticipant.Participant.Name == "" {
+		return nil, ErrDbMissingRecord
+	}
+
+	return &dbParticipant, nil
+}
+
 // Update DB with the participant entry checkpoint
 //
 // Return signature
@@ -169,7 +199,7 @@ func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant,
 			if dbParticipants.Checkpoints.Breakfast {
 				break
 			}
-			dbParticipants.Checkpoints.Breakfast = true;
+			dbParticipants.Checkpoints.Breakfast = true
 			db.Save(&dbParticipants)
 			return &dbParticipants, true, nil
 		}
@@ -178,7 +208,7 @@ func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant,
 			if dbParticipants.Checkpoints.Dinner {
 				break
 			}
-			dbParticipants.Checkpoints.Dinner = true;
+			dbParticipants.Checkpoints.Dinner = true
 			db.Save(&dbParticipants)
 			return &dbParticipants, true, nil
 		}
@@ -187,7 +217,7 @@ func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant,
 			if dbParticipants.Checkpoints.Snacks {
 				break
 			}
-			dbParticipants.Checkpoints.Snacks = true;
+			dbParticipants.Checkpoints.Snacks = true
 			db.Save(&dbParticipants)
 			return &dbParticipants, true, nil
 		}
