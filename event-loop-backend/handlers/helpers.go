@@ -68,7 +68,7 @@ func CreateDBParticipants(participantsRec []database.Participant) ([]database.DB
 		pid, _ := GenerateUUID(p)
 		signedString, _ := GenerateAuthoToken(p, pid)
 
-		_, err := GenerateQR(signedString, p.Name, p.Phone)
+		_, err := GenerateQR(signedString, p.Name, p.Email, pid)
 		if err != nil {
 			log.Fatal(err)
 		}

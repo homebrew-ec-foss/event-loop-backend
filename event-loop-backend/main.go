@@ -34,7 +34,7 @@ func main() {
 	r.POST("/qrsearch", handlers.HandleQRFetch)
 
 	r.GET("/participant", handlers.HandleParticipantFetch)
-	r.POST("/participant", handlers.HandleParticipantUpdate)
+	// r.POST("/participant", handlers.HandleParticipantUpdate)
 
 	// Additional team addition besides CSV
 	// future prospect
@@ -47,9 +47,9 @@ func main() {
 	// eg: Crossing checkpoints, etc.
 
 
-	r.PUT("/checkin", handlers.HandleCheckin)
-	r.PUT("/checkout", handlers.HandleCheckout)
-	r.PUT("/checkpoint", handlers.HandleCheckpoint)
+	// r.PUT("/checkin", handlers.HandleCheckin)
+	// r.PUT("/checkout", handlers.HandleCheckout)
+	// r.PUT("/checkpoint", handlers.HandleCheckpoint)
 
 	// TODO: Handle checking by scanner
 	volunteers := r.Group("/volunteer", func(ctx *gin.Context) {})
