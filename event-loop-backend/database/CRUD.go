@@ -15,14 +15,20 @@ var (
 )
 
 // Rather proposed custom error types
-var ErrDbOpenFailure = fmt.Errorf("Failed to run `OpenDB()`")
-var ErrDbMissingRecord = fmt.Errorf("Failed to fetch record")
-var ErrIncorrectField = fmt.Errorf("Checkpoint missing in db")
+var (
+	ErrDbOpenFailure   = fmt.Errorf("failed to run `OpenDB()`")
+	ErrDbMissingRecord = fmt.Errorf("failed to fetch record")
+	ErrIncorrectField  = fmt.Errorf("checkpoint missing in db")
+)
 
 // Event specific errors
 // DB_Participants related errors
-var ErrParticipantAbsent = fmt.Errorf("Participant never checkedin")
-var ErrParticipantLeft = fmt.Errorf("Participant has left the event")
+var (
+	ErrParticipantAbsent = fmt.Errorf("participant never checkedin")
+	ErrParticipantLeft   = fmt.Errorf("participant has left the event")
+)
+
+// Event authorised user specific
 
 // Open and return db access struct
 func openDB() (*gorm.DB, error) {
@@ -60,6 +66,22 @@ func FetchCheckpoints() []string {
 	var checkpoints []string
 
 	return checkpoints
+}
+
+func VerifyLogin(verifiedEmail string) (*DBAuthoriesedUsers, error) {
+	db, err := openDB()
+	if err != nil {
+		return nil, ErrDbOpenFailure
+	}
+
+	var dbAuthUser DBAuthoriesedUsers
+	_ = db.First(&dbAuthUser, "verifiedEmail = ?", verifiedEmail)
+
+	if dbAuthUser.VerifiedEmail == "" {
+		return nil, ErrDbMissingRecord
+	}
+
+	return &dbAuthUser, nil
 }
 
 func JWTFetchParticipant(jwtId string) (*DBParticipant, error) {
@@ -169,7 +191,6 @@ func ParticipantExit(jwtID string) (*DBParticipant, bool, error) {
 }
 
 func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant, bool, error) {
-
 	db, err := openDB()
 	if err != nil {
 		return nil, false, ErrDbOpenFailure

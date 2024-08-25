@@ -4,14 +4,35 @@ import "time"
 
 // This struct is another table to hold team data
 type Team struct {
+	// TODO: update by using a UUID
 	ID    string `gorm:"primaryKey"`
 	Team  string
 	Theme string
 }
 
+const (
+	AccessRoleAdmin     = iota
+	AccessRoleOrganizer = iota
+	AccessRoleVolunteer = iota
+)
+
+// This struct represents the verified organizers and
+// volunteers, holding the UUID (sub part of payload of
+// google OAuth), VerifiedEmail gmails and user roles
+// allowed roles:
+//   - admain
+//   - organizers
+//   - volunteers
+type DBAuthoriesedUsers struct {
+	VerifiedEmail string `gorm:"VerifiedEmail"`
+	UserRole      string `gorm:"UserRole"`
+	UUID          int64  `gorm:"primaryKey"`
+}
+
 // This struct holds all of the unified participant data stored in the DB
 type DBParticipant struct {
 	// ID is the generated JWT auth token
+	// TODO: Change to a UUID instead of JWT
 	ID          string      `gorm:"primaryKey"`
 	Participant Participant `gorm:"embedded"`
 	Checkpoints Checkpoints `gorm:"embedded"`

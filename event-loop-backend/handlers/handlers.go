@@ -300,7 +300,6 @@ func HandleQRFetch(ctx *gin.Context) {
 // Non JWTID basesd search expects the name and phone to
 // be unique together
 func HandleParticipantFetch(ctx *gin.Context) {
-
 	jwtID := ctx.DefaultQuery("jwtID", "")
 	partName := ctx.DefaultQuery("pname", "")
 	partPhone := ctx.DefaultQuery("pphone", "")
@@ -343,7 +342,7 @@ func HandleParticipantFetch(ctx *gin.Context) {
 }
 
 func HandleLogin(ctx *gin.Context) {
-	//apparently map only i needto do
+	// apparently map only i needto do
 	var requestBody map[string]interface{}
 
 	// json-> map tried doing with string because ez but was not nice
@@ -356,8 +355,22 @@ func HandleLogin(ctx *gin.Context) {
 	// print ingo
 	log.Println("Received login request:", requestBody)
 
+	dbAuthUser, err := database.VerifyLogin(requestBody["email"].(string))
+	switch err {
+	case database.ErrDbOpenFailure:
+		{
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators", "success": false})
+			return
+		}
+	case database.ErrDbMissingRecord:
+		{
+			ctx.JSON(http.StatusBadRequest, gin.H{"message": "No records available for", "success": false})
+			return
+		}
+	}
+
 	// Respond to the client
-	ctx.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Login successful", "success": true, "dbAuthUser": dbAuthUser})
 }
 
 func HandleParticipantUpdate(ctx *gin.Context) {
