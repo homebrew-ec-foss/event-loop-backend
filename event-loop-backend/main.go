@@ -46,12 +46,25 @@ func main() {
 	// Endpoints accessed during events
 	// eg: Crossing checkpoints, etc.
 
-	// TODO: Handle checking by scanner
+
 	r.PUT("/checkin", handlers.HandleCheckin)
-
 	r.PUT("/checkout", handlers.HandleCheckout)
-
 	r.PUT("/checkpoint", handlers.HandleCheckpoint)
+
+	// TODO: Handle checking by scanner
+	volunteers := r.Group("/volunteer", func(ctx *gin.Context) {})
+	{
+		volunteers.PUT("/checkin", handlers.HandleCheckin)
+		volunteers.PUT("/checkout", handlers.HandleCheckout)
+		volunteers.PUT("/checkpoint", handlers.HandleCheckpoint)
+	}
+
+	organiser := r.Group("/organiser", func(ctx *gin.Context) {})
+	{
+		organiser.PUT("/checkin", handlers.HandleCheckin)
+		organiser.PUT("/checkout", handlers.HandleCheckout)
+		organiser.PUT("/checkpoint", handlers.HandleCheckpoint)
+	}
 
 	err := r.RunTLS("0.0.0.0:8080", "localhost.crt", "localhost.key")
 	if err != nil {

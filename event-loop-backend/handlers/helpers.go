@@ -34,7 +34,7 @@ func ParseParticipants(teamRecords []map[string]string) ([]database.Participant,
 
 	for i := 0; i < len(teamRecords); i++ {
 		record := teamRecords[i]
-		for j := 1; j <= 4; j++ {
+		for j := 1; j <= 5; j++ {
 			participantName := record[fmt.Sprintf("Name %d", j)]
 			if participantName == "" {
 				continue
@@ -65,14 +65,16 @@ func CreateDBParticipants(participantsRec []database.Participant) ([]database.DB
 	var participantPointers []database.DBParticipant
 
 	for _, p := range participantsRec {
-		signedString, _ := GenerateAuthoToken(p)
+		pid, _ := GenerateUUID(p)
+		signedString, _ := GenerateAuthoToken(p, pid)
+
 		_, err := GenerateQR(signedString, p.Name, p.Phone)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		participantPointers = append(participantPointers, database.DBParticipant{
-			ID:          signedString,
+			ID:          pid,
 			Participant: p,
 			Checkpoints: database.Checkpoints{
 				Checkin:   false,

@@ -52,6 +52,7 @@ func CreateParticipants(dbParticipants []DBParticipant) error {
 		return err
 	}
 
+	log.Println("Attempting to write to db")
 	// Writing to DB
 	db.Create(dbParticipants)
 
@@ -84,14 +85,14 @@ func VerifyLogin(verifiedEmail string) (*DBAuthoriesedUsers, error) {
 	return &dbAuthUser, nil
 }
 
-func JWTFetchParticipant(jwtId string) (*DBParticipant, error) {
+func JWTFetchParticipant(jwt string) (*DBParticipant, error) {
 	db, err := openDB()
 	if err != nil {
 		return nil, ErrDbOpenFailure
 	}
 
 	var dbParticipant DBParticipant
-	_ = db.First(&dbParticipant, "id = ?", jwtId)
+	_ = db.First(&dbParticipant, "id = ?", jwt)
 
 	return &dbParticipant, nil
 }
@@ -120,14 +121,14 @@ func FetchParticipant(name string, phone string) (*DBParticipant, error) {
 // - Pointer to participant
 // - checkin : true if not checked in
 // - error
-func ParticipantEntry(jwtID string) (*DBParticipant, bool, error) {
+func ParticipantEntry(p_uuid string) (*DBParticipant, bool, error) {
 	db, err := openDB()
 	if err != nil {
 		return nil, false, ErrDbOpenFailure
 	}
 
 	var dbParticipant DBParticipant
-	_ = db.First(&dbParticipant, "id = ?", jwtID)
+	_ = db.First(&dbParticipant, "id = ?", p_uuid)
 	log.Println(dbParticipant.Participant)
 
 	if dbParticipant.Participant.Name == "" {
@@ -157,7 +158,7 @@ func ParticipantEntry(jwtID string) (*DBParticipant, bool, error) {
 //   - checkin : true if sucessfulyl checked in and
 //     false if alreayd checked in
 //   - error
-func ParticipantExit(jwtID string) (*DBParticipant, bool, error) {
+func ParticipantExit(p_uuid string) (*DBParticipant, bool, error) {
 	db, err := openDB()
 	if err != nil {
 		return nil, false, ErrDbOpenFailure
@@ -165,8 +166,7 @@ func ParticipantExit(jwtID string) (*DBParticipant, bool, error) {
 
 	var dbParticipants DBParticipant
 
-	log.Println(jwtID)
-	_ = db.First(&dbParticipants, "id = ?", jwtID)
+	_ = db.First(&dbParticipants, "id = ?", p_uuid)
 
 	// Extra check if there has been some tampered entry
 	// in the db
@@ -190,7 +190,7 @@ func ParticipantExit(jwtID string) (*DBParticipant, bool, error) {
 	return &dbParticipants, false, nil
 }
 
-func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant, bool, error) {
+func ParticipantCheckpoint(p_uuid string, checkpointName string) (*DBParticipant, bool, error) {
 	db, err := openDB()
 	if err != nil {
 		return nil, false, ErrDbOpenFailure
@@ -198,7 +198,7 @@ func ParticipantCheckpoint(jwtID string, checkpointName string) (*DBParticipant,
 
 	var dbParticipants DBParticipant
 
-	_ = db.First(&dbParticipants, "id = ?", jwtID)
+	_ = db.First(&dbParticipants, "id = ?", p_uuid)
 
 	// Check if participant is in the db
 	if dbParticipants.Participant.Name == "" {
