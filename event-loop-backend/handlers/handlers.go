@@ -356,15 +356,25 @@ func HandleLogin(ctx *gin.Context) {
 	// print ingo
 	log.Println("Received login request:", requestBody)
 
-	dbAuthUser, err := database.VerifyLogin(requestBody["email"].(string))
+	// dbAuthUser, err := database.VerifyLogin(int64(strconv.Itoa(requestBody["sub"].(string))),requestBody["email"].(string))
+
+	incomingUserReq := database.DBAuthoriesedUsers{
+		VerifiedEmail: requestBody["email"].(string),
+		SUB:           requestBody["sub"].(string),
+	}
+
+	dbAuthUser, err := database.VerifyLogin(incomingUserReq)
 	switch err {
 	case database.ErrDbOpenFailure:
 		{
+			log.Println("couldnt return user")
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators", "success": false})
 			return
 		}
 	case database.ErrDbMissingRecord:
 		{
+			log.Println(err)
+			log.Println("Missing databse record")
 			ctx.JSON(http.StatusBadRequest, gin.H{"message": "No records available for", "success": false})
 			return
 		}

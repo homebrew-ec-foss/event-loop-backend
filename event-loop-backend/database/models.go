@@ -24,9 +24,12 @@ const (
 //   - organizers
 //   - volunteers
 type DBAuthoriesedUsers struct {
+	SUB           string `gorm:"primaryKey"`
 	VerifiedEmail string `gorm:"VerifiedEmail"`
 	UserRole      string `gorm:"UserRole"`
-	UUID          int64  `gorm:"primaryKey"`
+
+	// TOOD:
+	// event name they belong to
 }
 
 // This struct holds all of the unified participant data stored in the DB

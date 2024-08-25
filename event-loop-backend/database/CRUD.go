@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"gorm.io/driver/sqlite"
@@ -69,17 +70,34 @@ func FetchCheckpoints() []string {
 	return checkpoints
 }
 
-func VerifyLogin(verifiedEmail string) (*DBAuthoriesedUsers, error) {
+func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 	db, err := openDB()
 	if err != nil {
 		return nil, ErrDbOpenFailure
 	}
 
 	var dbAuthUser DBAuthoriesedUsers
-	_ = db.First(&dbAuthUser, "verifiedEmail = ?", verifiedEmail)
+	_ = db.First(&dbAuthUser, "sub = ?", userDetails.SUB)
 
 	if dbAuthUser.VerifiedEmail == "" {
-		return nil, ErrDbMissingRecord
+
+		// need admin side approval for
+		// organisers and volunteers
+		admins := []string{
+			"adityahegde.clg@gmail.com",
+			"adimhegde@gmail.com",
+			"adheshathrey2004@gmail.com",
+		}
+
+		if !slices.Contains(admins, userDetails.VerifiedEmail) {
+			log.Println("missing from admin slice")
+			return nil, ErrDbMissingRecord
+		}
+
+		userDetails.UserRole = "admin"
+
+		db.Create(userDetails)
+		return &userDetails, nil
 	}
 
 	return &dbAuthUser, nil
