@@ -72,6 +72,7 @@ func HandleCreate(ctx *gin.Context) {
 	// Converting Participant structs to DBPartictipants
 	// Performing JWT and QR generation and embedding 'Checkpoints' struct
 	dbParticipants, err := CreateDBParticipants(participants)
+	log.Println(dbParticipants)
 
 	// Writing records to DB
 	err = database.CreateParticipants(dbParticipants)
@@ -115,7 +116,7 @@ func HandleCheckpoint(ctx *gin.Context) {
 	}
 	log.Println("JWT claims:", jwtClaims)
 
-	dbParticipant, checkpointCleared, err := database.ParticipantCheckpoint(data["jwt"].(string), checkpointName)
+	dbParticipant, checkpointCleared, err := database.ParticipantCheckpoint(jwtClaims["UUID"].(string), checkpointName)
 	log.Println(dbParticipant, checkpointCleared, err)
 
 	switch err {
@@ -175,7 +176,7 @@ func HandleCheckin(ctx *gin.Context) {
 	}
 
 	// Querying DB for participant and updating with entry
-	dbParticipant, checkin, err := database.ParticipantEntry(data["jwt"].(string))
+	dbParticipant, checkin, err := database.ParticipantEntry(jwtClaims["UUID"].(string))
 
 	switch err {
 	case database.ErrDbOpenFailure:
@@ -231,7 +232,7 @@ func HandleCheckout(ctx *gin.Context) {
 	log.Println(jwtClaims)
 
 	// Querying DB for participant and updating with entry
-	dbParticipant, checkout, err := database.ParticipantExit(data["jwt"].(string))
+	dbParticipant, checkout, err := database.ParticipantExit(jwtClaims["UUID"].(string))
 
 	switch err {
 	case database.ErrDbOpenFailure:
@@ -355,15 +356,25 @@ func HandleLogin(ctx *gin.Context) {
 	// print ingo
 	log.Println("Received login request:", requestBody)
 
-	dbAuthUser, err := database.VerifyLogin(requestBody["email"].(string))
+	// dbAuthUser, err := database.VerifyLogin(int64(strconv.Itoa(requestBody["sub"].(string))),requestBody["email"].(string))
+
+	incomingUserReq := database.DBAuthoriesedUsers{
+		VerifiedEmail: requestBody["email"].(string),
+		SUB:           requestBody["sub"].(string),
+	}
+
+	dbAuthUser, err := database.VerifyLogin(incomingUserReq)
 	switch err {
 	case database.ErrDbOpenFailure:
 		{
+			log.Println("couldnt return user")
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Database OP failed server side, contact operators", "success": false})
 			return
 		}
 	case database.ErrDbMissingRecord:
 		{
+			log.Println(err)
+			log.Println("Missing databse record")
 			ctx.JSON(http.StatusBadRequest, gin.H{"message": "No records available for", "success": false})
 			return
 		}

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/homebrew-ec-foss/event-loop-backend/database"
 	"github.com/joho/godotenv"
 	"github.com/skip2/go-qrcode"
@@ -14,6 +15,7 @@ import (
 
 // Claims for JWT
 type JWTClaims struct {
+	UUID    string `json:"UUID"`
 	Name    string `json:"name"`
 	College string `json:"college"`
 	Phone   string `json:"phone"`
@@ -22,7 +24,7 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-var ErrJWTFailedClaimsParsing = fmt.Errorf("Failed to parse for cliams. Seems like an invalid QR")
+var ErrJWTFailedClaimsParsing = fmt.Errorf("failed to parse for cliams. Seems like an invalid QR")
 
 func goDotEnvVariable(key string) string {
 	err := godotenv.Load(".env")
@@ -53,14 +55,28 @@ func JWTAuthCheck(rawtoken string) (bool, *jwt.MapClaims) {
 	}
 }
 
+func GenerateUUID(user_record database.Participant) (string, error) {
+	unique_string := fmt.Sprintf("%s-%s-%s", user_record.Name, user_record.College, user_record.Team)
+
+	id := uuid.NewSHA1(uuid.NameSpaceURL, []byte(unique_string))
+
+	// handler error where generated UUID is nil
+	return id.String(), nil
+}
+
 // BUG
 //
 //	All the jwt toekns use email in place of
 //	college name :P
-func GenerateAuthoToken(user_record database.Participant) (string, *JWTClaims) {
+func GenerateAuthoToken(user_record database.Participant, p_uuid string) (string, *JWTClaims) {
+	// var id int64
+
+	// TODO: generate UUI.
 	claims := JWTClaims{
+		// add a extra field for UUID
+		p_uuid,
 		user_record.Name,
-		user_record.Email,
+		user_record.College,
 		strconv.Itoa(int(user_record.Phone)),
 		user_record.Email,
 		jwt.RegisteredClaims{
@@ -87,7 +103,6 @@ func GetClaimsInfo(rawtoken string) (map[string]interface{}, error) {
 		dotenv := goDotEnvVariable("JWT_SECRET_KEY")
 		return []byte(dotenv), nil
 	})
-
 	if err != nil {
 		log.Println(err)
 		return nil, ErrJWTFailedClaimsParsing
@@ -102,7 +117,7 @@ func GetClaimsInfo(rawtoken string) (map[string]interface{}, error) {
 }
 
 // TODO: cleanup arguments for GenerateQR
-func GenerateQR(signedString, participantName string, participantPhone int64) ([]byte, error) {
+func GenerateQR(signedString, participantName string, participantEmail string, uuid string) ([]byte, error) {
 	var png []byte
 	png, err := qrcode.Encode(signedString, qrcode.Low, 256)
 	if err != nil {
@@ -113,7 +128,7 @@ func GenerateQR(signedString, participantName string, participantPhone int64) ([
 		log.Println(err)
 	}
 
-	err = qrcode.WriteFile(signedString, qrcode.Medium, 256, fmt.Sprintf("../test-data/qr-png/person-%s-%d.png", participantName, participantPhone))
+	err = qrcode.WriteFile(signedString, qrcode.Medium, 256, fmt.Sprintf("../test-data/qr-png/%s-%s-%s.png", participantEmail, participantName, uuid))
 	if err != nil {
 		return nil, err
 	}
