@@ -60,6 +60,20 @@ func CreateParticipants(dbParticipants []DBParticipant) error {
 	return nil
 }
 
+func CreateAuthorisedUsersDB() error {
+	db, err := openDB()
+	if err != nil {
+		return ErrDbOpenFailure
+	}
+
+	var dbAuth []DBAuthoriesedUsers
+
+	db.Create(&dbAuth)
+
+	return nil
+}
+
+
 // Function to fetch all checkpoints and
 // forward to backend
 //

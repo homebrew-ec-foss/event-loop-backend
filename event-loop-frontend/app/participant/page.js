@@ -141,9 +141,21 @@ export default function Participant() {
                                     <Input
                                         className="inline"
                                         placeholder="name"
-                                        value={participant["Participant"].name}
+                                        value={
+                                            participantCopy["Participant"].name
+                                        }
                                         readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                        onChange={(e) =>
+                                            setParticipantCopy({
+                                                ...participantCopy,
+                                                Participant: {
+                                                    ...participantCopy[
+                                                        "Participant"
+                                                    ],
+                                                    name: e.target.value,
+                                                },
+                                            })
+                                        }
                                     />
                                     <Input
                                         placeholder="email"
@@ -151,7 +163,17 @@ export default function Participant() {
                                             participantCopy["Participant"].email
                                         }
                                         readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                        onChange={(e) =>
+                                            setParticipantCopy({
+                                                ...participantCopy,
+                                                Participant: {
+                                                    ...participantCopy[
+                                                        "Participant"
+                                                    ],
+                                                    email: e.target.value,
+                                                },
+                                            })
+                                        }
                                     />
                                     <Input
                                         placeholder="phone"
@@ -159,7 +181,17 @@ export default function Participant() {
                                             participantCopy["Participant"].phone
                                         }
                                         readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                        onChange={(e) =>
+                                            setParticipantCopy({
+                                                ...participantCopy,
+                                                Participant: {
+                                                    ...participantCopy[
+                                                        "Participant"
+                                                    ],
+                                                    phone: e.target.value,
+                                                },
+                                            })
+                                        }
                                     />
                                     <Input
                                         placeholder="college"
@@ -168,7 +200,17 @@ export default function Participant() {
                                                 .college
                                         }
                                         readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                        onChange={(e) =>
+                                            setParticipantCopy({
+                                                ...participantCopy,
+                                                Participant: {
+                                                    ...participantCopy[
+                                                        "Participant"
+                                                    ],
+                                                    college: e.target.value,
+                                                },
+                                            })
+                                        }
                                     />
                                     <Input
                                         placeholder="branch"
@@ -177,7 +219,17 @@ export default function Participant() {
                                                 .branch
                                         }
                                         readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                        onChange={(e) =>
+                                            setParticipantCopy({
+                                                ...participantCopy,
+                                                Participant: {
+                                                    ...participantCopy[
+                                                        "Participant"
+                                                    ],
+                                                    branch: e.target.value,
+                                                },
+                                            })
+                                        }
                                     />
                                     {participant["Participant"].pesHostel && (
                                         <Input
@@ -187,7 +239,18 @@ export default function Participant() {
                                                     .pesHostel
                                             }
                                             readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                            onChange={(e) =>
+                                                setParticipantCopy({
+                                                    ...participantCopy,
+                                                    Participant: {
+                                                        ...participantCopy[
+                                                            "Participant"
+                                                        ],
+                                                        pesHostel:
+                                                            e.target.value,
+                                                    },
+                                                })
+                                            }
                                         />
                                     )}
                                     {!participant["Participant"].pesHostel && (
@@ -198,7 +261,9 @@ export default function Participant() {
                                                     .pesHostel
                                             }
                                             readOnly={!editMode}
-                                        onChange={(e) => console.log(e.target.value)}
+                                            onChange={(e) =>
+                                                console.log(e.target.value)
+                                            }
                                         />
                                     )}
                                     <h4>Checkpoints Cleared</h4>
