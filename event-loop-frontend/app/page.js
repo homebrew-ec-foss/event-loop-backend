@@ -8,14 +8,11 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
-import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import jwt from "jsonwebtoken";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function Home() {
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userDetails, setUserDetails] = useState({});
     const [alert, setAlert] = useState({ visible: false, message: "", variant: "default" });
 
     useEffect(() => {
@@ -62,7 +59,6 @@ export default function Home() {
                             loggedIn: true,
                         }),
                     );
-                    setIsLoggedIn(true); // Set user as logged in
                     setAlert({
                         visible: true,
                         message: `You have successfully logged in as ${data["dbAuthUser"].UserRole}`,
@@ -101,13 +97,6 @@ export default function Home() {
         console.log("Login Failed");
     };
 
-    const handleLogout = () => {
-        googleLogout();
-        console.log("User logged out");
-        localStorage.removeItem("google-oauth");
-        setIsLoggedIn(false); // Set user as logged out
-    };
-
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
@@ -135,24 +124,8 @@ export default function Home() {
                 </CardHeader>
             </Card>
             <div className="mt-4">
-                {(() => {
-                    return typeof window !== "undefined"
-                        ? localStorage.getItem("google-oauth")
-                        : null;
-                })() &&
-                    JSON.parse(localStorage.getItem("google-oauth"))
-                        .loggedIn && (
-                        <button
-                            onClick={handleLogout}
-                            className="mt-4 w-full bg-red-500 text-white py-2 px-4 rounded"
-                        >
-                            Logout
-                        </button>
-                    )}
                 {!(() => {
-                    return typeof window !== "undefined"
-                        ? localStorage.getItem("google-oauth")
-                        : null;
+                    return typeof window !== "undefined" ? localStorage.getItem("google-oauth") : null;
                 })() && (
                     <div className="mt-4">
                         <GoogleLogin
