@@ -1,5 +1,6 @@
 "use client";
 
+import Access from "@/components/access";
 import Navbar from "@/components/navbar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,8 @@ export default function Participant() {
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
+            <Access userRole={["admin", "organiser", "volunteer"]} />
+
             {success && (
                 <Card>
                     <CardHeader>

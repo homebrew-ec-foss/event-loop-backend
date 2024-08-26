@@ -46,7 +46,6 @@ func main() {
 	// Endpoints accessed during events
 	// eg: Crossing checkpoints, etc.
 
-
 	r.PUT("/checkin", handlers.HandleCheckin)
 	r.PUT("/checkout", handlers.HandleCheckout)
 	r.PUT("/checkpoint", handlers.HandleCheckpoint)

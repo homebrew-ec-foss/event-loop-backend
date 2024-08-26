@@ -25,6 +25,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Navbar from "@/components/navbar";
+import Access from "@/components/access";
 
 
 export default function FileUpload() {
@@ -44,7 +45,7 @@ export default function FileUpload() {
         formData.append("file", file);
 
         try {
-            
+
             const response = await fetch(`${process.env.GO_BACKEND_URL}/create`, {
                 method: "POST",
                 body: formData,
@@ -68,6 +69,8 @@ export default function FileUpload() {
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
+
+            <Access userRole={["admin", "operator"]} />
 
             {/*
                 TODO:   Make all fields as "required"

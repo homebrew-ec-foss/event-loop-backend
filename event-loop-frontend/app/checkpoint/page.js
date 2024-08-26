@@ -25,6 +25,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import Access from "@/components/access";
 
 export default function Checkpoint() {
     const [scanning, setScanning] = useState(false);
@@ -62,30 +63,21 @@ export default function Checkpoint() {
                         }),
                     },
                 );
-                // if (response.ok) {
-                //     console.log("JWT sent successfully");
-                //     const resp = await response.json();
-                //     console.log("Response:", resp.claims);
-                //     // append resp.claims json to recentScans
-
-                //     // if not in recentScans, add it
-                //     setRecentScans((prevScans) => [...prevScans, resp.claims]);
-
-                //     console.log("Recent Scans:", recentScans);
-                // } else {
-                //     console.error("Failed to send JWT");
-                // }
 
                 const json = await response.json();
 
                 switch (response.status) {
                     case 200: {
                         if (json.operation && json.checkpointCleared) {
-                            console.log("Already had some stuff")
-                            alert(`Successful checkpoint(${checkpoint}) update!`)
+                            console.log("Already had some stuff");
+                            alert(
+                                `Successful checkpoint(${checkpoint}) update!`,
+                            );
                         } else if (json.operation && !json.checkpointCleared) {
-                            console.log("Already had some stuff")
-                            alert(`Participant has already cleared the checkpoint ${checkpoint}`)
+                            console.log("Already had some stuff");
+                            alert(
+                                `Participant has already cleared the checkpoint ${checkpoint}`,
+                            );
                         }
                         setRecentScans((prevScans) => [
                             ...prevScans,
@@ -104,7 +96,6 @@ export default function Checkpoint() {
                         break;
                     }
                 }
-
             } catch (error) {
                 console.error("Error while sending JWT:", error);
             }
@@ -123,6 +114,8 @@ export default function Checkpoint() {
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
+
+            <Access userRole={["admin", "organiser", "volunteer"]} />
 
             <Card className="hover:bg-slate-100 transition duration-200 ease-in-out">
                 <CardHeader className="flex flex-col items-center">

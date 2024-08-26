@@ -24,6 +24,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import Access from "@/components/access";
 
 export default function Checkin() {
     const [scanning, setScanning] = useState(false);
@@ -42,6 +43,14 @@ export default function Checkin() {
             console.log(data[0]["rawValue"]);
             try {
                 // Request
+
+                const userData = localStorage.getItem("google-oauth");
+                if (!userData) {
+                    console.error("Local storage is empty");
+                }
+
+                const parsedUserData = JSON.parse(userData);
+
                 const response = await fetch(
                     `${process.env.GO_BACKEND_URL}/checkin`,
                     {
@@ -126,6 +135,8 @@ export default function Checkin() {
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
+
+            <Access userRole={["admin", "organiser", "volunteer"]} />
 
             <Card className="hover:bg-slate-100 transition duration-200 ease-in-out">
                 <CardHeader className="flex flex-col ">
