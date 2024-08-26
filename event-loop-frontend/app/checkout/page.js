@@ -43,14 +43,21 @@ export default function Checkin() {
             console.log(data[0]["rawValue"]);
             try {
                 // Request
+                const userData = localStorage.getItem("google-oauth");
+                if (!userData) {
+                    console.error("Local storage is empty");
+                }
+
+                const parsedUserData = JSON.parse(userData);
+
                 const response = await fetch(
-                    `${process.env.GO_BACKEND_URL}/checkout`,
+                    `${process.env.GO_BACKEND_URL}/${parsedUserData}/checkout`,
                     {
                         method: "PUT",
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ jwt: data[0]["rawValue"] }),
+                        body: JSON.stringify({ jwt: data[0]["rawValue"], sub: parsedUserData.sub }),
                     },
                 );
 

@@ -45,8 +45,16 @@ export default function FileUpload() {
         formData.append("file", file);
 
         try {
+            const userData = localStorage.getItem("google-oauth");
+            if (!userData) {
+                console.error("Local storage is empty");
+            }
 
-            const response = await fetch(`${process.env.GO_BACKEND_URL}/create`, {
+            const parsedUserData = JSON.parse(userData);
+
+            formData.append("sub", parsedUserData.sub);
+
+            const response = await fetch(`${process.env.GO_BACKEND_URL}/${parsedUserData.userRole}/create`, {
                 method: "POST",
                 body: formData,
             });

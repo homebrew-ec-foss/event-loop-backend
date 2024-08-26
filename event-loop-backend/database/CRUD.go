@@ -30,6 +30,10 @@ var (
 )
 
 // Event authorised user specific
+var (
+	ErrUnauthorised = fmt.Errorf("incoming request isn't from an authorised login")
+	ErrNoAccess = fmt.Errorf("incoming request was authoriesed but has no access to the endpoint")
+)
 
 // Open and return db access struct
 func openDB() (*gorm.DB, error) {
@@ -72,7 +76,6 @@ func CreateAuthorisedUsersDB() error {
 
 	return nil
 }
-
 
 // Function to fetch all checkpoints and
 // forward to backend
@@ -121,12 +124,34 @@ func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 			userDetails.UserRole = "volunteer"
 		}
 
-
 		db.Create(userDetails)
 		return &userDetails, nil
 	}
 
 	return &dbAuthUser, nil
+}
+
+func SubAuthentication(sub string, userRole string) (*DBAuthoriesedUsers, error) {
+
+	db, err := openDB()
+	if err != nil {
+		return nil, ErrDbOpenFailure
+	}
+
+
+	var dbAuthUser DBAuthoriesedUsers
+	_ = db.First(&dbAuthUser, "sub = ?", sub)
+
+	if dbAuthUser.VerifiedEmail == "" {
+		// bro doesnt exist
+		return nil, ErrDbMissingRecord
+	}
+
+	if dbAuthUser.UserRole != userRole {
+		return nil, ErrNoAccess
+	} else {
+		return &dbAuthUser, nil
+	}
 }
 
 func JWTFetchParticipant(jwt string) (*DBParticipant, error) {

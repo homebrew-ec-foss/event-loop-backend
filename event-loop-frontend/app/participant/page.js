@@ -51,8 +51,16 @@ export default function Participant() {
         async function fetchParticipant() {
             try {
                 if (jwtid) {
+
+                    const userData = localStorage.getItem("google-oauth");
+                    if (!userData) {
+                        console.error("Local storage is empty");
+                    }
+
+                    const parsedUserData = JSON.parse(userData);
+
                     const response = await fetch(
-                        `${process.env.GO_BACKEND_URL}/participant?jwtID=${jwtid}`,
+                        `${process.env.GO_BACKEND_URL}/${parsedUserData.userRole}/participant?jwtID=${jwtid}`,
                         {
                             method: "GET",
                             headers: {

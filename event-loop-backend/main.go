@@ -17,14 +17,6 @@ func main() {
 		ctx.String(http.StatusOK, "pong")
 	})
 
-	////////////////////////////////////////////////
-
-	// Pre event endpoints
-	// handles creation for event
-	r.POST("/create", handlers.HandleCreate)
-
-	////////////////////////////////////////////////
-
 	// Generic functions for admin control
 
 	r.GET("/search", func(ctx *gin.Context) {})
@@ -46,23 +38,49 @@ func main() {
 	// Endpoints accessed during events
 	// eg: Crossing checkpoints, etc.
 
-	r.PUT("/checkin", handlers.HandleCheckin)
-	r.PUT("/checkout", handlers.HandleCheckout)
-	r.PUT("/checkpoint", handlers.HandleCheckpoint)
+	// r.PUT("/checkin", handlers.HandleCheckin)
+	// r.PUT("/checkout", handlers.HandleCheckout)
+	// r.PUT("/checkpoint", handlers.HandleCheckpoint)
 
 	// TODO: Handle checking by scanner
-	volunteers := r.Group("/volunteer", func(ctx *gin.Context) {})
+
+	// Router Groups for
+	// 	- volunteers
+	//  - organiser
+	// 	- admin
+
+	// NOTE:
+	volunteers := r.Group("/volunteer", handlers.AuthenticationMiddleware("volunteer"))
 	{
+		// NOTE: endpoints active during events
 		volunteers.PUT("/checkin", handlers.HandleCheckin)
 		volunteers.PUT("/checkout", handlers.HandleCheckout)
 		volunteers.PUT("/checkpoint", handlers.HandleCheckpoint)
 	}
 
-	organiser := r.Group("/organiser", func(ctx *gin.Context) {})
+	// NOTE:
+	organiser := r.Group("/organiser", handlers.AuthenticationMiddleware("organiser"))
 	{
+		// pre event
+		organiser.POST("/create", handlers.HandleCreate)
+		// TODO: endpoint to send QR's
+
+		// NOTE: endpoints active during events
 		organiser.PUT("/checkin", handlers.HandleCheckin)
 		organiser.PUT("/checkout", handlers.HandleCheckout)
 		organiser.PUT("/checkpoint", handlers.HandleCheckpoint)
+	}
+
+	// NOTE:
+	admin := r.Group("/admin", handlers.AuthenticationMiddleware("admin"))
+	{
+		admin.POST("/create", handlers.HandleCreate)
+		// TODO: endpoint to send QR's
+
+		// NOTE: endpoints active during events
+		admin.PUT("/checkin", handlers.HandleCheckin)
+		admin.PUT("/checkout", handlers.HandleCheckout)
+		admin.PUT("/checkpoint", handlers.HandleCheckpoint)
 	}
 
 	err := r.RunTLS("0.0.0.0:8080", "localhost.crt", "localhost.key")

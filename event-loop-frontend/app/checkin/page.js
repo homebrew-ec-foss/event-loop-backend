@@ -42,8 +42,6 @@ export default function Checkin() {
             setScanning(false); // Stop scanning when a QR code is scanned
             console.log(data[0]["rawValue"]);
             try {
-                // Request
-
                 const userData = localStorage.getItem("google-oauth");
                 if (!userData) {
                     console.error("Local storage is empty");
@@ -52,13 +50,16 @@ export default function Checkin() {
                 const parsedUserData = JSON.parse(userData);
 
                 const response = await fetch(
-                    `${process.env.GO_BACKEND_URL}/checkin`,
+                    `${process.env.GO_BACKEND_URL}/${parsedUserData.userRole}/checkin`,
                     {
                         method: "PUT",
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({ jwt: data[0]["rawValue"] }),
+                        body: JSON.stringify({
+                            jwt: data[0]["rawValue"],
+                            sub: parsedUserData.sub,
+                        }),
                     },
                 );
 

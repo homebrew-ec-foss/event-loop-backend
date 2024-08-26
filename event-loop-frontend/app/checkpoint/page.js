@@ -50,8 +50,17 @@ export default function Checkpoint() {
             console.log(checkpoint);
 
             try {
+
+                const userData = localStorage.getItem("google-oauth");
+                if (!userData) {
+                    console.error("Local storage is empty");
+                }
+
+                const parsedUserData = JSON.parse(userData);
+
+
                 const response = await fetch(
-                    `${process.env.GO_BACKEND_URL}/checkpoint`,
+                    `${process.env.GO_BACKEND_URL}/${parsedUserData.userRole}/checkpoint`,
                     {
                         method: "PUT",
                         headers: {
@@ -60,6 +69,7 @@ export default function Checkpoint() {
                         body: JSON.stringify({
                             jwt: data[0]["rawValue"],
                             checkpoint: checkpoint,
+                            sub: parsedUserData.sub
                         }),
                     },
                 );

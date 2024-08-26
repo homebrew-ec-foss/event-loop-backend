@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -25,6 +28,55 @@ func CorsMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+func AuthenticationMiddleware(userRole string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		log.Println("Authenticating")
+
+		body, err := io.ReadAll(ctx.Request.Body)
+		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+		if err != nil {
+			log.Println(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+			return
+		}
+
+		var data map[string]interface{}
+		err = json.Unmarshal(body, &data)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse JSON"})
+			return
+		}
+
+		log.Println(data)
+
+		user_sub := data["sub"].(string)
+
+		_, err = database.SubAuthentication(user_sub, userRole)
+
+		switch err {
+		case database.ErrDbOpenFailure:
+			{
+				ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Backend server failed to perform operations. Contact administrator"})
+				return
+			}
+		case database.ErrDbMissingRecord:
+			{
+				ctx.JSON(http.StatusBadRequest, gin.H{"message": "Missing auth records for incoming user"})
+				return
+			}
+		case database.ErrNoAccess:
+			{
+				ctx.JSON(http.StatusBadRequest, gin.H{"message": "Incoming request was authoriesed but has no access to endpoint"})
+				return
+			}
+		}
+
+		// querry db and check if they have the grant
+		log.Println("Authorised request")
 	}
 }
 
