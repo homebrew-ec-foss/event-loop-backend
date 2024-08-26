@@ -25,17 +25,20 @@ export default function Home() {
                 console.log("Logged in user information:", userObject);
 
                 // Send user info to be
-                const response = await fetch(`${process.env.GO_BACKEND_URL}/login`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
+                const response = await fetch(
+                    `${process.env.GO_BACKEND_URL}/login`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            email: userObject.email,
+                            name: userObject.name,
+                            sub: userObject.sub,
+                        }),
                     },
-                    body: JSON.stringify({
-                        email: userObject.email,
-                        name: userObject.name,
-                        sub: userObject.sub,
-                    }),
-                });
+                );
 
                 if (response.ok) {
                     const data = await response.json();
@@ -52,6 +55,7 @@ export default function Home() {
                     );
                     setIsLoggedIn(true); // Set user as logged in
                 } else {
+                    alert("Invalid user login. Please contact admin.");
                     localStorage.removeItem("google-oauth");
                     console.error("Failed to send user info to server");
                 }
@@ -89,9 +93,13 @@ export default function Home() {
                 </CardHeader>
             </Card>
             <div className="mt-4">
-                {localStorage.getItem("google-oauth") &&
+                {(() => {
+                    return typeof window !== "undefined"
+                        ? localStorage.getItem("google-oauth")
+                        : null;
+                })() &&
                     JSON.parse(localStorage.getItem("google-oauth"))
-                        .loggedIn === true && (
+                        .loggedIn && (
                         <button
                             onClick={handleLogout}
                             className="mt-4 w-full bg-red-500 text-white py-2 px-4 rounded"
@@ -99,7 +107,11 @@ export default function Home() {
                             Logout
                         </button>
                     )}
-                {!localStorage.getItem("google-oauth") && (
+                {!(() => {
+                    return typeof window !== "undefined"
+                        ? localStorage.getItem("google-oauth")
+                        : null;
+                })() && (
                     <div className="mt-4">
                         <GoogleLogin
                             onSuccess={handleGoogleLoginSuccess}

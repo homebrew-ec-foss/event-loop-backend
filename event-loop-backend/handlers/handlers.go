@@ -364,6 +364,7 @@ func HandleLogin(ctx *gin.Context) {
 	}
 
 	dbAuthUser, err := database.VerifyLogin(incomingUserReq)
+	log.Println(err)
 	switch err {
 	case database.ErrDbOpenFailure:
 		{

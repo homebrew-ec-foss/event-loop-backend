@@ -27,7 +27,10 @@ export default function Navbar() {
                             Ping
                         </NavigationMenuLink>
                     </Link>
-                    {localStorage.getItem("google-oauth") &&
+                    {
+                        (() => {
+                            return typeof window !== 'undefined' ? localStorage.getItem("google-oauth") : null;
+                        })() &&
                         (() => {
                             const userData = JSON.parse(
                                 localStorage.getItem("google-oauth"),
@@ -42,7 +45,10 @@ export default function Navbar() {
                                 </NavigationMenuLink>
                             </Link>
                         )}
-                    {localStorage.getItem("google-oauth") &&
+                    {
+                        (() => {
+                            return typeof window !== 'undefined' ? localStorage.getItem("google-oauth") : null;
+                        })() &&
                         (() => {
                             const userData = JSON.parse(
                                 localStorage.getItem("google-oauth"),

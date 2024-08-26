@@ -40,7 +40,7 @@ func openDB() (*gorm.DB, error) {
 			return nil, errGlobal
 		}
 
-		dbGlobal.AutoMigrate(&DBParticipant{})
+		dbGlobal.AutoMigrate(&DBParticipant{}, &DBAuthoriesedUsers{})
 	}
 
 	return dbGlobal, nil
@@ -99,16 +99,28 @@ func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 		// organisers and volunteers
 		admins := []string{
 			"adityahegde.clg@gmail.com",
-			"adimhegde@gmail.com",
 			"adheshathrey2004@gmail.com",
+		}
+
+		volunteer := []string{
+			"adimhegde@gmail.com",
 		}
 
 		if !slices.Contains(admins, userDetails.VerifiedEmail) {
 			log.Println("missing from admin slice")
 			return nil, ErrDbMissingRecord
+		} else if slices.Contains(admins, userDetails.VerifiedEmail) {
+			log.Println("Is volunteer")
+			userDetails.UserRole = "admin"
 		}
 
-		userDetails.UserRole = "admin"
+		if !slices.Contains(volunteer, userDetails.VerifiedEmail) {
+			log.Println("Missing from volunteer slice")
+			return nil, ErrDbMissingRecord
+		} else if slices.Contains(volunteer, userDetails.VerifiedEmail) {
+			userDetails.UserRole = "volunteer"
+		}
+
 
 		db.Create(userDetails)
 		return &userDetails, nil
