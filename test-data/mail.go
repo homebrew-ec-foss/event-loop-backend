@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
+	"mime/multipart"
+	"net/http"
 	"net/smtp"
 	"os"
 	"path/filepath"
@@ -18,7 +22,7 @@ func main() {
 		return
 	}
 
-	dirPath := "qr/path"
+	dirPath := "test/"
 
 	files, err := os.ReadDir(dirPath)
 	if err != nil {
@@ -50,18 +54,43 @@ func sendQRCodeToEmail(email, qrCodeFilePath string) error {
 	smtpUsername := os.Getenv("SMTP_USERNAME")
 	smtpPassword := os.Getenv("SMTP_PASSWORD")
 
-	message := []byte(fmt.Sprintf("To: %s\r\n"+
-		"Subject: QR Code\r\n"+
-		"\r\n"+
-		"QR CODE TAKE.\r\n", email))
+	message := bytes.NewBuffer(nil)
 
-	qrCodeData, err := os.ReadFile(qrCodeFilePath)
+	message.WriteString("Subject: Inginy24 Attendance QR's\n")
+	message.WriteString(fmt.Sprintf("To: %s\n", email))
+	message.WriteString("MIME-Version: 1.0\n")
+
+	writer := multipart.NewWriter(message)
+	boundary := writer.Boundary()
+
+	message.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\n", boundary))
+	message.WriteString(fmt.Sprintf("--%s\n", boundary))
+
+	message.WriteString("Please save the following QR which will be used through your time in this competition")
+
+	qrData, err := os.ReadFile(qrCodeFilePath)
 	if err != nil {
 		return err
 	}
 
+	message.WriteString(fmt.Sprintf("\n\n--%s\n", boundary))
+	message.WriteString(fmt.Sprintf("Content-Type: %s\n", http.DetectContentType(qrData)))
+	message.WriteString("Content-Transfer-Encoding: base64\n")
+
+	_, fileName := filepath.Split(qrCodeFilePath)
+	message.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=%s\n", fileName))
+
+	img := make([]byte, base64.StdEncoding.EncodedLen(len(qrData)))
+	base64.StdEncoding.Encode(img, qrData)
+	message.Write(img)
+	message.WriteString(fmt.Sprintf("\n--%s", boundary))
+
+	message.WriteString("--")
+
 	auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpServer)
-	err = smtp.SendMail(fmt.Sprintf("%s:%s", smtpServer, smtpPort), auth, smtpUsername, []string{email}, append(message, qrCodeData...))
+
+	addr := fmt.Sprintf("%s:%s", smtpServer, smtpPort)
+	err = smtp.SendMail(addr, auth, smtpUsername, []string{email}, message.Bytes())
 	if err != nil {
 		return err
 	}

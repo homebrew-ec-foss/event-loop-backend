@@ -32,7 +32,7 @@ var (
 // Event authorised user specific
 var (
 	ErrUnauthorised = fmt.Errorf("incoming request isn't from an authorised login")
-	ErrNoAccess = fmt.Errorf("incoming request was authoriesed but has no access to the endpoint")
+	ErrNoAccess     = fmt.Errorf("incoming request was authoriesed but has no access to the endpoint")
 )
 
 // Open and return db access struct
@@ -93,10 +93,14 @@ func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 		return nil, ErrDbOpenFailure
 	}
 
+	log.Println("request: ", userDetails)
+
 	var dbAuthUser DBAuthoriesedUsers
 	_ = db.First(&dbAuthUser, "sub = ?", userDetails.SUB)
 
 	if dbAuthUser.VerifiedEmail == "" {
+
+		log.Println("Missing from records")
 
 		// need admin side approval for
 		// organisers and volunteers
@@ -105,23 +109,24 @@ func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 			"adheshathrey2004@gmail.com",
 		}
 
-		volunteer := []string{
+		organisers := []string{
+			"anirudh.sudhir1@gmail.com",
+		}
+
+		volunteers := []string{
 			"adimhegde@gmail.com",
 		}
 
-		if !slices.Contains(admins, userDetails.VerifiedEmail) {
-			log.Println("missing from admin slice")
-			return nil, ErrDbMissingRecord
-		} else if slices.Contains(admins, userDetails.VerifiedEmail) {
-			log.Println("Is volunteer")
+		if slices.Contains(admins, userDetails.VerifiedEmail) {
 			userDetails.UserRole = "admin"
-		}
-
-		if !slices.Contains(volunteer, userDetails.VerifiedEmail) {
-			log.Println("Missing from volunteer slice")
-			return nil, ErrDbMissingRecord
-		} else if slices.Contains(volunteer, userDetails.VerifiedEmail) {
+			log.Println("Hello admin")
+		} else if slices.Contains(organisers, userDetails.VerifiedEmail) {
+			userDetails.UserRole = "organiser"
+			log.Println("Hello organiser")
+		} else if slices.Contains(volunteers, userDetails.VerifiedEmail) {
 			userDetails.UserRole = "volunteer"
+		} else {
+			return nil, ErrDbMissingRecord
 		}
 
 		db.Create(userDetails)
@@ -132,12 +137,10 @@ func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 }
 
 func SubAuthentication(sub string, userRole string) (*DBAuthoriesedUsers, error) {
-
 	db, err := openDB()
 	if err != nil {
 		return nil, ErrDbOpenFailure
 	}
-
 
 	var dbAuthUser DBAuthoriesedUsers
 	_ = db.First(&dbAuthUser, "sub = ?", sub)

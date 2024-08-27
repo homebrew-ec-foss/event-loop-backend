@@ -51,7 +51,7 @@ export default function Checkin() {
                 const parsedUserData = JSON.parse(userData);
 
                 const response = await fetch(
-                    `${process.env.GO_BACKEND_URL}/${parsedUserData}/checkout`,
+                    `${process.env.GO_BACKEND_URL}/${parsedUserData.userRole}/checkout`,
                     {
                         method: "PUT",
                         headers: {

@@ -2,7 +2,7 @@
 
 *.png
 
-localhost.crt
-localhost.key
+localhost*.crt
+localhost*.key
 
 event-loop-backend
