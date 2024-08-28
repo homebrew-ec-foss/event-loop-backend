@@ -13,8 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
 import QrCodeIcon from "@/components/ui/icon";
 import { Scanner } from "@yudiel/react-qr-scanner";
-import QrScannerWithConstraints from "@/components/QrScannerWithConstraints";
-
 import {
     Table,
     TableBody,
@@ -25,16 +23,21 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Access from "@/components/access";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function Checkin() {
     const [scanning, setScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [error, setError] = useState(null);
-    const [cameras, setCameras] = useState([]);
-    const [selectedCamera, setSelectedCamera] = useState(null);
-
-    // const [recentScans, setRecentScans] = useState([]);
     const [recentScans, setRecentScans] = useState([]);
+    const [alert, setAlert] = useState({ visible: false, message: "", variant: "default" });
+
+    useEffect(() => {
+        if (alert.visible) {
+            const timer = setTimeout(() => setAlert({ visible: false, message: "", variant: "default" }), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [alert]);
 
     const handleQRCodeScan = useCallback(async (data) => {
         if (data) {
@@ -68,24 +71,20 @@ export default function Checkin() {
 
                 switch (response.status) {
                     case 200: {
-                        // Valid request from client
-                        // JWT has been sent successfully
-
                         const entrytime = new Date(
                             json.dbParticipant["Checkpoints"]["entry_time"],
                         );
 
-                        // Oh my god is type safety even
-                        // a thing!?
+                        const checkinMessage = json.checkin
+                            ? `Successful Check-in at ${entrytime}`
+                            : `Already checked in at ${entrytime}`;
 
-                        if (json.operation && json.checkin) {
-                            alert(`Suffessful Checkin at ${entrytime}`);
-                        } else if (json.operation && !json.checkin) {
-                            alert(`Already checked in at ${entrytime}`);
-                        }
+                        setAlert({
+                            visible: true,
+                            message: checkinMessage,
+                            variant: "success",
+                        });
 
-                        // Append participants to rencet scans
-                        // table
                         setRecentScans((prevScans) => [
                             ...prevScans,
                             json.dbParticipant,
@@ -93,24 +92,37 @@ export default function Checkin() {
                         break;
                     }
                     case 400: {
-                        // Bad request by client
                         console.log(json);
-                        alert(`${json.message}`);
+                        setAlert({
+                            visible: true,
+                            message: json.message,
+                            variant: "destructive",
+                        });
                         break;
                     }
                     case 500: {
-                        // Internal Server Error
-                        alert(
-                            "Seems to be there is a failed db operation. Contact operators",
-                        );
+                        setAlert({
+                            visible: true,
+                            message: "Failed DB operation. Contact operators.",
+                            variant: "destructive",
+                        });
                         break;
                     }
                     default: {
-                        alert("Seems like this isn't handled correctly");
+                        setAlert({
+                            visible: true,
+                            message: "Unexpected error occurred.",
+                            variant: "destructive",
+                        });
                     }
                 }
             } catch (error) {
                 console.error("Error while sending JWT:", error);
+                setAlert({
+                    visible: true,
+                    message: "Error while processing the check-in.",
+                    variant: "destructive",
+                });
             }
         }
     }, []);
@@ -120,24 +132,27 @@ export default function Checkin() {
         setError("Camera not accessible.");
     };
 
-    const handleCameraChange = (event) => {
-        setSelectedCamera(event.target.value);
-    };
-
-    const videoConstraints = selectedCamera
-        ? {
-              deviceId: { exact: selectedCamera },
-              facingMode: "environment", // ill set it as environment as of now wont say exact, but device can be changed
-              width: 1280,
-              height: 720,
-          }
-        : {};
-
     return (
         <main className="flex min-h-screen flex-col p-5 md:p-28 gap-4">
             <Navbar />
 
             <Access userRole={["admin", "organiser", "volunteer"]} />
+
+            {alert.visible && (
+                <div
+                    className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-xs p-3 rounded-lg shadow-lg
+                    ${alert.variant === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"}
+                    animate-slide-down`}
+                    onClick={() => setAlert({ visible: false, message: "", variant: "default" })}
+                >
+                    <AlertTitle className="text-sm font-bold">
+                        {alert.variant === "success" ? "Success" : "Error"}
+                    </AlertTitle>
+                    <AlertDescription className="text-xs">
+                        {alert.message}
+                    </AlertDescription>
+                </div>
+            )}
 
             <Card className="hover:bg-slate-100 transition duration-200 ease-in-out">
                 <CardHeader className="flex flex-col ">
@@ -166,27 +181,29 @@ export default function Checkin() {
                     {scanning && (
                         <Scanner
                             onScan={(result) => handleQRCodeScan(result)}
+                            onError={handleError}
                         />
                     )}
                     {scanResult && <Badge>QR Code Scanned: {scanResult}</Badge>}
                     {error && <Badge variant="destructive">{error}</Badge>}
 
-                    {recentScans && (
-                        <Table className="">
-                            {/* fill table with setJsonResponse */}
-                            <TableCaption>Verified CSV form</TableCaption>
+                    {recentScans.length > 0 && (
+                        <Table>
+                            <TableCaption>Verified Participants</TableCaption>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Checkin Time</TableHead>
+                                    <TableHead>Check-in Time</TableHead>
                                     <TableHead>College</TableHead>
                                     <TableHead>Phone</TableHead>
                                     <TableHead>Team</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {recentScans &&
-                                    recentScans.reverse().map((row, index) => (
+                                {recentScans
+                                    .slice()
+                                    .reverse()
+                                    .map((row, index) => (
                                         <TableRow key={index}>
                                             <TableCell>
                                                 {row["Participant"].name}
