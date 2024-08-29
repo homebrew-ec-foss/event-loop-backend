@@ -1,99 +1,76 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
+	"crypto/tls"
 	"fmt"
-	"mime/multipart"
-	"net/http"
-	"net/smtp"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/joho/godotenv"
+	"gopkg.in/gomail.v2"
 )
 
 func main() {
-	// Load environment variables from .env file
-	err := godotenv.Load()
+	// SMTP server configuration
+	dialer := gomail.NewDialer("smtp.gmail.com", 465, "kludge@pes.edu", "jsxk cocf oyml izbo")
+	// For production, remove InsecureSkipVerify or set it to false.
+	dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	// Open a connection to the SMTP server
+	sender, err := dialer.Dial()
 	if err != nil {
-		fmt.Println("Error loading .env file:", err)
-		return
+		log.Fatalf("Could not connect to SMTP server: %v", err)
 	}
+	defer sender.Close()
 
-	dirPath := "test/"
+	// Directory containing the QR code PNG files
+	dir := "./qr-png"
 
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		fmt.Println("Error reading directory:", err)
-		return
-	}
+	// Walk through the directory and process each PNG file
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-	for _, file := range files {
-		if strings.HasSuffix(file.Name(), ".png") {
-			// Extract the email from the file name
-			fileName := strings.TrimSuffix(file.Name(), ".png")
-			parts := strings.Split(fileName, "-")
-			email := parts[0]
+		// Process only PNG files
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".png") {
+			// Extract email from the file name
+			email, name := extractEmailFromFileName(info.Name())
+			if email == "" {
+				log.Printf("Could not extract email from file name: %s", info.Name())
+				return nil
+			}
 
-			err := sendQRCodeToEmail(email, filepath.Join(dirPath, file.Name()))
-			if err != nil {
-				fmt.Println("Error sending QR code to email:", err)
+			// Create a new email message
+			msg := gomail.NewMessage()
+			msg.SetHeader("From", "kludge@pes.edu")
+			msg.SetHeader("To", email)
+			msg.SetHeader("Subject", "rr campus sudhir bus samosa scam")
+			msg.SetBody("text/plain", fmt.Sprintf("SUDHIR SCAN %s", name))
+			msg.Attach(path)
+
+			// Send the email using the persistent connection
+			if err := gomail.Send(sender, msg); err != nil {
+				log.Printf("Could not send email to %s: %v", email, err)
 			} else {
-				fmt.Println("QR code sent to email:", email)
+				fmt.Printf("Email sent to %s successfully.\n", email)
 			}
 		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Fatalf("Error walking the directory: %v", err)
 	}
 }
 
-func sendQRCodeToEmail(email, qrCodeFilePath string) error {
-	// SMTP CONF
-	smtpServer := "smtp.gmail.com"
-	smtpPort := "587"
-	smtpUsername := os.Getenv("SMTP_USERNAME")
-	smtpPassword := os.Getenv("SMTP_PASSWORD")
-
-	message := bytes.NewBuffer(nil)
-
-	message.WriteString("Subject: Inginy24 Attendance QR's\n")
-	message.WriteString(fmt.Sprintf("To: %s\n", email))
-	message.WriteString("MIME-Version: 1.0\n")
-
-	writer := multipart.NewWriter(message)
-	boundary := writer.Boundary()
-
-	message.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\n", boundary))
-	message.WriteString(fmt.Sprintf("--%s\n", boundary))
-
-	message.WriteString("Please save the following QR which will be used through your time in this competition")
-
-	qrData, err := os.ReadFile(qrCodeFilePath)
-	if err != nil {
-		return err
+// extractEmailFromFileName extracts the email from the file name
+func extractEmailFromFileName(fileName string) (string, string) {
+	parts := strings.Split(fileName, "-")
+	if len(parts) > 1 {
+		return parts[0], parts[1]
 	}
-
-	message.WriteString(fmt.Sprintf("\n\n--%s\n", boundary))
-	message.WriteString(fmt.Sprintf("Content-Type: %s\n", http.DetectContentType(qrData)))
-	message.WriteString("Content-Transfer-Encoding: base64\n")
-
-	_, fileName := filepath.Split(qrCodeFilePath)
-	message.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=%s\n", fileName))
-
-	img := make([]byte, base64.StdEncoding.EncodedLen(len(qrData)))
-	base64.StdEncoding.Encode(img, qrData)
-	message.Write(img)
-	message.WriteString(fmt.Sprintf("\n--%s", boundary))
-
-	message.WriteString("--")
-
-	auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpServer)
-
-	addr := fmt.Sprintf("%s:%s", smtpServer, smtpPort)
-	err = smtp.SendMail(addr, auth, smtpUsername, []string{email}, message.Bytes())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return "", ""
 }
