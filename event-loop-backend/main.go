@@ -58,12 +58,11 @@ func main() {
 		volunteers.PUT("/checkpoint", handlers.HandleCheckpoint)
 	}
 
+	r.POST("/create", handlers.HandleCreate)
+
 	// NOTE:
 	organiser := r.Group("/organiser", handlers.AuthenticationMiddleware("organiser"))
 	{
-		// pre event
-		organiser.POST("/create", handlers.HandleCreate)
-		// TODO: endpoint to send QR's
 
 		// NOTE: endpoints active during events
 		organiser.PUT("/checkin", handlers.HandleCheckin)
@@ -74,8 +73,6 @@ func main() {
 	// NOTE:
 	admin := r.Group("/admin", handlers.AuthenticationMiddleware("admin"))
 	{
-		admin.POST("/create", handlers.HandleCreate)
-		// TODO: endpoint to send QR's
 
 		// NOTE: endpoints active during events
 		admin.PUT("/checkin", handlers.HandleCheckin)
@@ -83,7 +80,7 @@ func main() {
 		admin.PUT("/checkpoint", handlers.HandleCheckpoint)
 	}
 
-	err := r.RunTLS("0.0.0.0:8080", "localhost.crt", "localhost.key")
+	err := r.Run(":8080")
 	if err != nil {
 		log.Fatal(err)
 	}

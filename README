@@ -1,1 +1,11 @@
 Event Loop Front+Backend
+
+For nginx, place eventloo.hegde.live at /etc/nginx/sites-available.
+
+Create symlink
+ln -s /etc/nginx/sites-available/eventloop.hegde.live /etc/nginx/sites-enabled/
+
+remove symlink for default site
+rm /etc/nginx/sites-enabled/default
+
+restart nginx

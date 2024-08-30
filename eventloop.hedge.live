@@ -1,0 +1,12 @@
+server {
+	server_name eventloop.hegde.live;
+	location / {
+                proxy_pass http://localhost:8080;
+        }
+
+	listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/eventloop.hegde.live/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/eventloop.hegde.live/privkey.pem; # managed by Certbot
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}

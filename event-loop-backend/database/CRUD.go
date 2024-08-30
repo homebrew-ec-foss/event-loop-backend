@@ -115,6 +115,31 @@ func VerifyLogin(userDetails DBAuthoriesedUsers) (*DBAuthoriesedUsers, error) {
 
 		volunteers := []string{
 			"adimhegde@gmail.com",
+			"naysha.k0708@gmail.com",
+			"devesh6742@gmail.com",
+			"omshivshankar21@gmail.com",
+			"vickspatil1404@gmail.com",
+			"kunalkishoremaverick@gmail.com",
+			"kavyaprakashscei@gmail.com",
+			"nehanshetty2003@gmail.com",
+			"b.himank101@gmail.com",
+			"moulikmachaiah724@gmail.com",
+			"manum262sagara@gmail.com",
+			"disha14072003@gmail.com",
+			"ananya975.p@gmail.com",
+			"prathamshetty0826@gmail.com",
+			"ruthu.hm03@gmail.com",
+			"shashanknadigm03@gmail.com",
+			"keerthanaumesh161@gmail.com",
+			"shreyalizbethrobin@gmail.com",
+			"eshwarra5@gmail.com",
+			"jiteshnayak2004@gmail.com",
+			"sarkarsoham73@gmail.com",
+			"santoshrajpurohit89@gmail.com",
+			"prawnee99@gmail.com",
+			"shubhammookim@gmail.com",
+			"kushagraagarwal2003@gmail.com",
+			"roshinlinson67281@gmail.com",
 		}
 
 		if slices.Contains(admins, userDetails.VerifiedEmail) {
