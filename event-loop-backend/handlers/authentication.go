@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/homebrew-ec-foss/event-loop-backend/database"
 	"github.com/joho/godotenv"
-	"github.com/nrednav/cuid2"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -56,7 +56,9 @@ func JWTAuthCheck(rawtoken string) (bool, *jwt.MapClaims) {
 }
 
 func GenerateUUID(user_record database.Participant) (string, error) {
-	id := cuid2.Generate()
+	unique_string := fmt.Sprintf("%s-%s-%s", user_record.Name, user_record.College, user_record.Team)
+
+	id := uuid.NewSHA1(uuid.NameSpaceURL, []byte(unique_string))
 
 	// handler error where generated UUID is nil
 	return id.String(), nil
