@@ -1,6 +1,6 @@
-module github.com/homebrew-ec-foss/event-loop-backend
+module github.com/homebrew-ec-foss/eventloop
 
-go 1.22.6
+go 1.23.4
 
 require (
 	github.com/gin-gonic/gin v1.10.0

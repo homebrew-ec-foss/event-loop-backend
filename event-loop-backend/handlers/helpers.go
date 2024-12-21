@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/homebrew-ec-foss/event-loop-backend/database"
+	"github.com/homebrew-ec-foss/eventloop/database"
 )
 
 func CorsMiddleware() gin.HandlerFunc {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/homebrew-ec-foss/event-loop-backend/handlers"
+	"github.com/homebrew-ec-foss/eventloop/handlers"
 )
 
 func main() {

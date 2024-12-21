@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/homebrew-ec-foss/event-loop-backend/database"
+	"github.com/homebrew-ec-foss/eventloop/database"
 	"github.com/joho/godotenv"
 	"github.com/skip2/go-qrcode"
 )
